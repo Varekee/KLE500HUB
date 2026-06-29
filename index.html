@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kawasaki KLE500SE 2026 — Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Anti-FOUC: apply theme before paint to prevent flash -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('kleTheme');
+            if (t && t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <style>
+        /* ========================= THEMES ========================= */
+        :root {
+            --green: #00d068;
+            --green-dim: rgba(0, 208, 104, 0.15);
+            --green-glow: rgba(0, 208, 104, 0.4);
+            --bg: #0c0c0e;
+            --card: #111114;
+            --text: #d8dce8;
+            --text-dim: #565b6e;
+            --sidebar-bg: #080809;
+            --sidebar-border: #1c1c22;
+            --menu-item-color: #5a6070;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1f14 0%, #0c0c0e 60%);
+            --scan-line: rgba(0,208,104,0.03);
+        }
+
+        [data-theme="oem-green"] {
+            --green: #5dca6a;
+            --green-dim: rgba(93,202,106,0.12);
+            --green-glow: rgba(93,202,106,0.35);
+            --bg: #07130a; --card: #0a1a0d; --text: #c8e8cc; --text-dim: #3d6645;
+            --sidebar-bg: #050e07; --sidebar-border: #1a3020; --menu-item-color: #4a7a52;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0e2015 0%, #07130a 60%);
+        }
+        [data-theme="blueprint"] {
+            --green: #4fc3f7;
+            --green-dim: rgba(79,195,247,0.12);
+            --green-glow: rgba(79,195,247,0.35);
+            --bg: #060e1a; --card: #080f1e; --text: #b8d4f0; --text-dim: #2a4a6a;
+            --sidebar-bg: #040a14; --sidebar-border: #0f2040; --menu-item-color: #2a5070;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1e38 0%, #060e1a 60%);
+        }
+        [data-theme="light"] {
+            --green: #0d7a3a;
+            --green-dim: rgba(13,122,58,0.08);
+            --green-glow: rgba(13,122,58,0.25);
+            --bg: #eeede8; --card: #f8f7f2; --text: #1a1c22; --text-dim: #9a9ea8;
+            --sidebar-bg: #e4e3de; --sidebar-border: #d0cfc8; --menu-item-color: #6a6e78;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #dde8e0 0%, #eeede8 60%);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* Scan lines overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                var(--scan-line) 0px,
+                var(--scan-line) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ========================= TOP BAR ========================= */
+        .topbar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            height: 56px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--sidebar-border);
+            flex-shrink: 0;
+        }
+
+        /* green line bottom */
+        .topbar::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--green) 30%, var(--green) 70%, transparent);
+            opacity: 0.3;
+        }
+
+        .topbar-brand {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--green);
+            opacity: 0.7;
+        }
+
+        .topbar-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        /* Theme switcher */
+        .theme-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-right: 6px;
+        }
+
+        .theme-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid var(--sidebar-border);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .theme-btn:hover { border-color: var(--green); transform: scale(1.1); }
+
+        .theme-btn.active {
+            border-color: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+        }
+
+        .theme-btn.active::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 1px;
+            background: var(--green);
+        }
+
+        .theme-btn[data-theme="dark"]       { background: #0c0c0e; }
+        .theme-btn[data-theme="oem-green"]  { background: #07130a; }
+        .theme-btn[data-theme="blueprint"]  { background: #060e1a; }
+        .theme-btn[data-theme="light"]      { background: #eeede8; }
+
+        /* Language switcher */
+        .lang-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid var(--sidebar-border);
+        }
+
+        .lang-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            padding: 3px 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .lang-btn:hover {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .lang-btn.active {
+            color: var(--green);
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+
+        /* ========================= HERO ========================= */
+        .hero {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 72px 32px 56px;
+            background: var(--home-gradient);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Big background text */
+        .hero-bg-text {
+            position: absolute;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 220px;
+            font-weight: 800;
+            letter-spacing: -8px;
+            text-transform: uppercase;
+            color: var(--green);
+            opacity: 0.03;
+            user-select: none;
+            pointer-events: none;
+            white-space: nowrap;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 1;
+        }
+
+        /* Corner crosshair decorations */
+        .hero::before, .hero::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.25;
+        }
+
+        .hero::before {
+            top: 20px;
+            left: 20px;
+            border-top: 1px solid var(--green);
+            border-left: 1px solid var(--green);
+        }
+
+        .hero::after {
+            bottom: 20px;
+            right: 20px;
+            border-bottom: 1px solid var(--green);
+            border-right: 1px solid var(--green);
+        }
+
+        .hero-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--green);
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            line-height: 0.95;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .hero-title span {
+            color: var(--green);
+        }
+
+        .hero-sub {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Horizontal rule with center dot */
+        .hero-rule {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0 0;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .hero-rule-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--green));
+            opacity: 0.3;
+        }
+
+        .hero-rule-line:last-child {
+            background: linear-gradient(to left, transparent, var(--green));
+        }
+
+        .hero-rule-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--green);
+            opacity: 0.6;
+        }
+
+        /* ========================= MODULES GRID ========================= */
+        .modules-section {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 56px 32px 64px;
+        }
+
+        .section-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 32px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 480px));
+            gap: 20px;
+            width: 100%;
+            max-width: 1040px;
+            justify-content: center;
+        }
+
+        /* ========================= MODULE CARD ========================= */
+        .module-card {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .module-card:hover {
+            border-color: var(--green);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--green-glow);
+        }
+
+        /* Top accent bar */
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--green);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .module-card:hover::before { opacity: 1; }
+
+        /* Corner tag */
+        .module-tag {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            color: var(--green);
+            opacity: 0.5;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        .module-card:hover .module-tag { opacity: 0.9; }
+
+        .module-header {
+            padding: 24px 24px 20px;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        /* Icon */
+        .module-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,208,104,0.2);
+            border-radius: 3px;
+        }
+
+        .module-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--green);
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .module-header-text {
+            flex: 1;
+        }
+
+        .module-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            letter-spacing: 2.5px;
+            color: var(--green);
+            opacity: 0.65;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .module-name {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .module-body {
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .module-desc {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--menu-item-color);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Feature list */
+        .module-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .module-features li {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-features li::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+            opacity: 0.5;
+        }
+
+        .module-footer {
+            padding: 14px 24px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .module-status {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--green);
+            opacity: 0.6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .module-status::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .module-arrow {
+            font-size: 18px;
+            color: var(--text-dim);
+            transition: color 0.2s, transform 0.2s;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .module-card:hover .module-arrow {
+            color: var(--green);
+            transform: translateX(4px);
+        }
+
+        /* ========================= FOOTER ========================= */
+        .footer {
+            position: relative;
+            z-index: 1;
+            padding: 20px 32px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .footer-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .footer-sep {
+            width: 1px;
+            height: 12px;
+            background: var(--sidebar-border);
+        }
+
+        /* ========================= TELEGRAM LINK ========================= */
+        .tg-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .tg-link:hover {
+            color: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--green-glow);
+            background: var(--green-dim);
+        }
+
+        .tg-link svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        /* ========================= ANIMATIONS ========================= */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-eyebrow  { animation: fadeUp 0.5s ease both; animation-delay: 0.05s; }
+        .hero-title    { animation: fadeUp 0.5s ease both; animation-delay: 0.1s; }
+        .hero-sub      { animation: fadeUp 0.5s ease both; animation-delay: 0.15s; }
+        .hero-rule     { animation: fadeUp 0.5s ease both; animation-delay: 0.2s; }
+        .section-label { animation: fadeUp 0.5s ease both; animation-delay: 0.25s; }
+        .module-card:nth-child(1) { animation: fadeUp 0.5s ease both; animation-delay: 0.3s; }
+        .module-card:nth-child(2) { animation: fadeUp 0.5s ease both; animation-delay: 0.4s; }
+        .module-card:nth-child(3) { animation: fadeUp 0.5s ease both; animation-delay: 0.5s; }
+
+        /* ========================= MOBILE ========================= */
+        @media (max-width: 600px) {
+            /* Topbar */
+            .topbar {
+                padding: 0 16px;
+                height: 52px;
+            }
+            .topbar-eyebrow { font-size: 7px; letter-spacing: 2px; }
+            .topbar-title { font-size: 16px; }
+            .theme-label { display: none; }
+            .theme-btn { width: 24px; height: 24px; }
+
+            /* Hero */
+            .hero {
+                padding: 40px 20px 36px;
+            }
+            .hero-bg-text { font-size: 100px; }
+            .hero-eyebrow { font-size: 9px; letter-spacing: 2px; margin-bottom: 8px; }
+            .hero::before, .hero::after { width: 24px; height: 24px; }
+
+            /* Modules section */
+            .modules-section { padding: 32px 16px 48px; }
+            .section-label { margin-bottom: 20px; }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            /* Module card — make touch targets bigger */
+            .module-header { padding: 18px 18px 16px; }
+            .module-body { padding: 16px 18px; }
+            .module-footer { padding: 12px 18px; }
+            .module-name { font-size: 20px; }
+            .module-desc { font-size: 12px; }
+
+            /* Footer */
+            .footer { padding: 16px; gap: 12px; }
+            .footer-text { font-size: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <span class="topbar-eyebrow">Kawasaki KLE500SE 2026</span>
+            <span class="topbar-title">Workshop Hub</span>
+        </div>
+        <div style="display:flex;align-items:center;">
+            <div class="theme-row">
+                <span class="theme-label">Theme</span>
+                <button class="theme-btn" data-theme="dark"      onclick="setTheme('dark', this)"      title="Dark"></button>
+                <button class="theme-btn" data-theme="oem-green" onclick="setTheme('oem-green', this)" title="OEM Green"></button>
+                <button class="theme-btn" data-theme="blueprint" onclick="setTheme('blueprint', this)" title="Blueprint"></button>
+                <button class="theme-btn" data-theme="light"     onclick="setTheme('light', this)"     title="Light"></button>
+            </div>
+            <div class="lang-row">
+                <button class="lang-btn active" data-lang="ru" onclick="setLang('ru', this)">RU</button>
+                <button class="lang-btn" data-lang="en" onclick="setLang('en', this)">EN</button>
+                <button class="lang-btn" data-lang="es" onclick="setLang('es', this)">ES</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg-text">KLE</div>
+        <p class="hero-eyebrow" data-i18n="selectModule">Select module</p>
+        <h1 class="hero-title">Kawasaki <span>KLE500SE</span><br>2026</h1>
+        <p class="hero-sub" data-i18n="workshopTools">Workshop tools &amp; documentation</p>
+        <div class="hero-rule">
+            <div class="hero-rule-line"></div>
+            <div class="hero-rule-dot"></div>
+            <div class="hero-rule-dot"></div>
+            <div class="hero-rule-dot"></div>
+            <div class="hero-rule-line"></div>
+        </div>
+    </section>
+
+    <!-- MODULES -->
+    <section class="modules-section">
+        <p class="section-label" data-i18n="availableModules">Available modules</p>
+        <div class="modules-grid">
+
+            <!-- EPC -->
+            <a class="module-card" href="epc.html">
+                <span class="module-tag">v1.0</span>
+                <div class="module-header">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                            <line x1="9" y1="12" x2="15" y2="12"/>
+                            <line x1="9" y1="16" x2="13" y2="16"/>
+                        </svg>
+                    </div>
+                    <div class="module-header-text">
+                        <p class="module-eyebrow" data-i18n="epcEyebrow">Parts catalog</p>
+                        <p class="module-name">EPC</p>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p class="module-desc" data-i18n="epcDesc">Electronic Parts Catalog — интерактивный каталог запчастей с диаграммами, поиском и списком избранного.</p>
+                    <ul class="module-features">
+                        <li data-i18n="epcF1">Полный каталог с диаграммами деталей</li>
+                        <li data-i18n="epcF2">Поиск по коду и названию</li>
+                        <li data-i18n="epcF3">Список избранных / экспорт</li>
+                        <li data-i18n="epcF4">Интерактивная миникарта</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <span class="module-status" data-i18n="online">Online</span>
+                    <span class="module-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- TRIP ANALYZER -->
+            <a class="module-card" href="trip_analyzer.html">
+                <span class="module-tag">v1.0</span>
+                <div class="module-header">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div class="module-header-text">
+                        <p class="module-eyebrow" data-i18n="tripEyebrow">Route analysis</p>
+                        <p class="module-name">Trip Analyzer</p>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p class="module-desc" data-i18n="tripDesc">Анализатор маршрутов — загружайте GPX/CSV-треки, стройте графики высот, скорости и расхода топлива.</p>
+                    <ul class="module-features">
+                        <li data-i18n="tripF1">Импорт GPX / CSV треков</li>
+                        <li data-i18n="tripF2">Графики высоты, скорости, топлива</li>
+                        <li data-i18n="tripF3">Статистика маршрута</li>
+                        <li data-i18n="tripF4">Экспорт отчёта</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <span class="module-status" data-i18n="online">Online</span>
+                    <span class="module-arrow">→</span>
+                </div>
+            </a>
+
+        <!-- ══ OWNER'S MANUAL ══════════════════════════════════════════════ -->
+        <a class="module-card" href="manual.html">
+            <span class="module-tag">PDF</span>
+            <div class="module-header">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+                <div class="module-header-text">
+                    <div class="module-eyebrow" data-i18n="manualEyebrow">Документация</div>
+                    <div class="module-name">Owner's Manual</div>
+                </div>
+            </div>
+            <div class="module-body">
+                <p class="module-desc" data-i18n="manualDesc">Официальное руководство владельца KLE500 2026MY — технические характеристики, обслуживание, регламенты.</p>
+                <ul class="module-features">
+                    <li data-i18n="manualF1">214 страниц, полный текст</li>
+                    <li data-i18n="manualF2">Навигация по страницам</li>
+                    <li data-i18n="manualF3">Скачать PDF одним кликом</li>
+                    <li data-i18n="manualF4">Все темы оформления</li>
+                </ul>
+            </div>
+            <div class="module-footer">
+                <span class="module-status" data-i18n="online">Online</span>
+                <span class="module-arrow">→</span>
+            </div>
+        </a>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <span class="footer-text">KLE500SE 2026</span>
+        <div class="footer-sep"></div>
+        <span class="footer-text">Workshop Hub</span>
+        <div class="footer-sep"></div>
+        <span class="footer-text">3 modules</span>
+        <div class="footer-sep"></div>
+        <a class="tg-link" href="https://t.me/KLE500_2026" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 14.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z"/>
+            </svg>
+            Telegram
+        </a>
+    </footer>
+
+<script>
+    /* ===== THEME ===== */
+    function setTheme(theme, btn) {
+        document.documentElement.setAttribute('data-theme', theme === 'dark' ? '' : theme);
+        localStorage.setItem('kleTheme', theme);
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    (function() {
+        const saved = localStorage.getItem('kleTheme') || 'dark';
+        const btn = document.querySelector(`.theme-btn[data-theme="${saved}"]`);
+        setTheme(saved, btn);
+    })();
+
+    /* ===== I18N ===== */
+    const i18n = {
+        ru: {
+            selectModule:     'Выберите модуль',
+            workshopTools:    'Инструменты мастерской и документация',
+            availableModules: 'Доступные модули',
+            online:           'Онлайн',
+            epcEyebrow:       'Каталог запчастей',
+            epcDesc:          'Electronic Parts Catalog — интерактивный каталог запчастей с диаграммами, поиском и списком избранного.',
+            epcF1:            'Полный каталог с диаграммами деталей',
+            epcF2:            'Поиск по коду и названию',
+            epcF3:            'Список избранных / экспорт',
+            epcF4:            'Интерактивная миникарта',
+            manualEyebrow:    'Документация',
+            manualDesc:       'Официальное руководство владельца KLE500 2026MY — технические характеристики, обслуживание, регламенты.',
+            manualF1:         '214 страниц, полный текст',
+            manualF2:         'Навигация по страницам',
+            manualF3:         'Скачать PDF одним кликом',
+            manualF4:         'Все темы оформления',
+            tripEyebrow:      'Анализ маршрута',
+            tripDesc:         'Анализатор маршрутов — загружайте CSV-треки, стройте графики скорости, оборотов и передач.',
+            tripF1:           'Импорт CSV треков',
+            tripF2:           'Графики скорости, оборотов, передач',
+            tripF3:           'Статистика маршрута',
+            tripF4:           'Экспорт отчёта',
+        },
+        en: {
+            selectModule:     'Select module',
+            workshopTools:    'Workshop tools & documentation',
+            availableModules: 'Available modules',
+            online:           'Online',
+            epcEyebrow:       'Parts catalog',
+            epcDesc:          'Electronic Parts Catalog — interactive parts catalog with diagrams, search, and favorites list.',
+            epcF1:            'Full catalog with parts diagrams',
+            epcF2:            'Search by code and name',
+            epcF3:            'Favorites list / export',
+            epcF4:            'Interactive minimap',
+            manualEyebrow:    'Documentation',
+            manualDesc:       'Official KLE500 2026MY owner's manual — specifications, maintenance schedules, service intervals.',
+            manualF1:         '214 pages, full text',
+            manualF2:         'Page-by-page navigation',
+            manualF3:         'Download PDF in one click',
+            manualF4:         'All color themes',
+            tripEyebrow:      'Route analysis',
+            tripDesc:         'Trip Analyzer — import CSV tracks, build charts for speed, RPM, and gear usage.',
+            tripF1:           'Import CSV tracks',
+            tripF2:           'Speed, RPM, gear charts',
+            tripF3:           'Route statistics',
+            tripF4:           'Export report',
+        },
+        es: {
+            selectModule:     'Seleccionar módulo',
+            workshopTools:    'Herramientas de taller y documentación',
+            availableModules: 'Módulos disponibles',
+            online:           'En línea',
+            epcEyebrow:       'Catálogo de piezas',
+            epcDesc:          'Catálogo Electrónico de Piezas — catálogo interactivo con diagramas, búsqueda y lista de favoritos.',
+            epcF1:            'Catálogo completo con diagramas de piezas',
+            epcF2:            'Búsqueda por código y nombre',
+            epcF3:            'Lista de favoritos / exportar',
+            epcF4:            'Minimapa interactivo',
+            manualEyebrow:    'Documentación',
+            manualDesc:       'Manual oficial del propietario KLE500 2026MY — especificaciones, mantenimiento, intervalos de servicio.',
+            manualF1:         '214 páginas, texto completo',
+            manualF2:         'Navegación página a página',
+            manualF3:         'Descargar PDF en un clic',
+            manualF4:         'Todos los temas de color',
+            tripEyebrow:      'Análisis de ruta',
+            tripDesc:         'Analizador de rutas — importa tracks CSV, construye gráficos de velocidad, RPM y marchas.',
+            tripF1:           'Importar tracks CSV',
+            tripF2:           'Gráficos de velocidad, RPM, marchas',
+            tripF3:           'Estadísticas de ruta',
+            tripF4:           'Exportar informe',
+        },
+    };
+
+    function setLang(lang, btn) {
+        const t = i18n[lang];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key] !== undefined) el.textContent = t[key];
+        });
+        document.documentElement.lang = lang;
+        localStorage.setItem('kleLang', lang);
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    (function() {
+        const saved = localStorage.getItem('kleLang') || 'ru';
+        const btn = document.querySelector(`.lang-btn[data-lang="${saved}"]`);
+        setLang(saved, btn);
+    })();
+</script>
+</body>
+</html>

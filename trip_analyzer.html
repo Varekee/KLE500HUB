@@ -1,0 +1,3694 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kawasaki KLE500SE 2026 — Trip Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Anti-FOUC: apply theme before paint to prevent flash -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('kleTheme');
+            if (t && t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <style>
+        /* ========================= THEMES ========================= */
+        :root {
+            --green: #00d068;
+            --green-dim: rgba(0, 208, 104, 0.15);
+            --green-glow: rgba(0, 208, 104, 0.4);
+            --bg: #0c0c0e;
+            --card: #111114;
+            --text: #d8dce8;
+            --text-dim: #565b6e;
+            --sidebar-bg: #080809;
+            --sidebar-border: #1c1c22;
+            --menu-item-color: #5a6070;
+            --menu-hover-bg: #13131a;
+            --menu-active-bg: #141520;
+            --search-bg: #080809;
+            --search-border: #1e1e28;
+            --table-header-bg: #0f0f14;
+            --table-border: #181820;
+            --table-cell-color: #a0a8bc;
+            --preview-bg: #0a0a0f;
+            --preview-border: #2a2a3a;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1f14 0%, #0c0c0e 60%);
+        }
+        [data-theme="oem-green"] {
+            --green: #5dca6a; --green-dim: rgba(93,202,106,0.12); --green-glow: rgba(93,202,106,0.35);
+            --bg: #07130a; --card: #0a1a0d; --text: #c8e8cc; --text-dim: #3d6645;
+            --sidebar-bg: #050e07; --sidebar-border: #1a3020; --menu-item-color: #4a7a52;
+            --menu-hover-bg: #0e1f12; --menu-active-bg: #101f14; --search-bg: #050e07;
+            --search-border: #1a3020; --table-header-bg: #0a1a0d; --table-border: #12251a;
+            --table-cell-color: #90b898; --preview-bg: #07130a; --preview-border: #2a5033;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0e2015 0%, #07130a 60%);
+        }
+        [data-theme="blueprint"] {
+            --green: #4fc3f7; --green-dim: rgba(79,195,247,0.12); --green-glow: rgba(79,195,247,0.35);
+            --bg: #060e1a; --card: #080f1e; --text: #b8d4f0; --text-dim: #2a4a6a;
+            --sidebar-bg: #040a14; --sidebar-border: #0f2040; --menu-item-color: #2a5070;
+            --menu-hover-bg: #0a1628; --menu-active-bg: #0a1a30; --search-bg: #040a14;
+            --search-border: #0f2040; --table-header-bg: #08102a; --table-border: #0d1a32;
+            --table-cell-color: #7aa8cc; --preview-bg: #060e1a; --preview-border: #1a3a6a;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1e38 0%, #060e1a 60%);
+        }
+        [data-theme="light"] {
+            --green: #0d7a3a; --green-dim: rgba(13,122,58,0.08); --green-glow: rgba(13,122,58,0.25);
+            --bg: #eeede8; --card: #f8f7f2; --text: #1a1c22; --text-dim: #9a9ea8;
+            --sidebar-bg: #e4e3de; --sidebar-border: #d0cfc8; --menu-item-color: #6a6e78;
+            --menu-hover-bg: #dddcd6; --menu-active-bg: #f8f7f2; --search-bg: #f8f7f2;
+            --search-border: #d0cfc8; --table-header-bg: #f0efe8; --table-border: #e0dfd8;
+            --table-cell-color: #3a3c44; --preview-bg: #f8f7f2; --preview-border: #c0c0b8;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #dde8e0 0%, #eeede8 60%);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Barlow', 'Segoe UI', sans-serif;
+            display: flex; height: 100vh;
+            background: var(--bg); color: var(--text);
+            overflow: hidden; font-size: 13px;
+        }
+
+        /* Scan lines overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                var(--scan-line) 0px,
+                var(--scan-line) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* ========================= SIDEBAR ========================= */
+        #sidebar {
+            width: 300px; background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex; flex-direction: column; flex-shrink: 0; position: relative;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        }
+        #sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-right: none;
+            pointer-events: none;
+        }
+
+        /* Desktop show-sidebar button — appears when sidebar is collapsed */
+        #sidebarReveal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 30px; height: 30px;
+            border: 1px solid var(--sidebar-border); border-radius: 5px;
+            background: transparent; color: var(--text-dim);
+            cursor: pointer; flex-shrink: 0;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+            padding: 0;
+        }
+        #sidebarReveal:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        body.sidebar-hidden #sidebarReveal { display: flex; }
+        #sidebar::after {
+            content: ''; position: absolute; right: -1px; top: 0;
+            width: 1px; height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, var(--green) 20%, var(--green) 80%, transparent 100%);
+            opacity: 0.35;
+        }
+        .header { padding: 0; border-bottom: 1px solid var(--sidebar-border); flex-shrink: 0; position: relative; }
+        .header-inner { display: flex; flex-direction: column; padding: 16px 52px 14px 16px; position: relative; overflow: hidden; }
+        .header-inner::before {
+            content: 'TRIP'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+            letter-spacing: 3px; color: var(--green); opacity: 0.6;
+            display: none;
+        }
+        .header-eyebrow {
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 500;
+            letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); margin-bottom: 4px; opacity: 0.8;
+        }
+        .header-title {
+            font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800;
+            letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; color: var(--text);
+        }
+
+        /* Upload zone */
+        #uploadZone {
+            margin: 12px; border: 1px dashed var(--sidebar-border); border-radius: 6px;
+            padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+        }
+        #uploadZone:hover, #uploadZone.drag-over { border-color: var(--green); background: var(--green-dim); }
+        #uploadZone .upload-icon { font-size: 22px; margin-bottom: 6px; opacity: 0.5; }
+        #uploadZone .upload-label {
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--text-dim);
+        }
+        #uploadZone .upload-sub { font-size: 10px; color: var(--text-dim); margin-top: 3px; opacity: 0.5; }
+        #fileInput { display: none; }
+
+        /* Trip meta */
+        #tripInfo { margin: 0 12px 8px; display: none; flex-direction: column; gap: 3px; }
+        .trip-info-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 8px; background: var(--menu-active-bg);
+            border-radius: 4px; border: 1px solid var(--sidebar-border);
+        }
+        .trip-info-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+        .trip-info-val { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--green); }
+
+        /* Nav */
+        #navMenu { flex-grow: 1; overflow-y: auto; }
+        #navMenu::-webkit-scrollbar { width: 3px; }
+        #navMenu::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 2px; }
+        .nav-item {
+            padding: 11px 16px 11px 18px; cursor: pointer;
+            border-bottom: 1px solid var(--sidebar-border); font-size: 12px; font-weight: 500;
+            letter-spacing: 0.3px; color: var(--menu-item-color); transition: all 0.15s;
+            display: flex; align-items: center; gap: 10px; position: relative;
+        }
+        .nav-item .nav-idx { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); min-width: 18px; flex-shrink: 0; }
+        .nav-item:hover { background: var(--menu-hover-bg); color: var(--green); padding-left: 20px; }
+        .nav-item.active { background: var(--menu-active-bg); color: var(--text); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+            background: var(--green); box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        /* Theme switcher */
+        #themeSwitcher {
+            padding: 10px 12px; border-top: 1px solid var(--sidebar-border); background: var(--sidebar-bg);
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        .theme-switcher-label {
+            font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-dim); margin-right: 4px; flex-shrink: 0;
+        }
+        .theme-btn {
+            width: 20px; height: 20px; border-radius: 3px;
+            border: 1px solid var(--sidebar-border); cursor: pointer;
+            transition: all 0.15s; position: relative; padding: 0; flex-shrink: 0;
+        }
+        .theme-btn:hover { border-color: var(--green); transform: scale(1.15); }
+        .theme-btn.active { border-color: var(--green); box-shadow: 0 0 6px var(--green-glow); }
+        .theme-btn.active::after {
+            content: ''; position: absolute; inset: 3px; border-radius: 1px; background: var(--green);
+        }
+        .theme-btn[data-theme="dark"]      { background: #0c0c0e; }
+        .theme-btn[data-theme="oem-green"] { background: #07130a; }
+        .theme-btn[data-theme="blueprint"] { background: #060e1a; }
+        .theme-btn[data-theme="light"]     { background: #eeede8; }
+
+        /* ========================= MAIN ========================= */
+        #main { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        #topBar {
+            height: 48px; border-bottom: 1px solid var(--sidebar-border); background: var(--sidebar-bg);
+            display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0;
+        }
+        .topbar-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+        .topbar-title { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; color: var(--text); }
+        .topbar-sep { flex-grow: 1; }
+        .topbar-badge { font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 3px 8px; border: 1px solid var(--sidebar-border); border-radius: 3px; color: var(--green); letter-spacing: 1.5px; }
+
+
+        /* Language switcher */
+        #langSwitcher {
+            display: flex;
+            gap: 4px;
+            padding: 0 12px 10px;
+            flex-shrink: 0;
+            border-top: 1px solid var(--sidebar-border);
+            padding-top: 10px;
+        }
+        .lang-btn {
+            flex: 1;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            padding: 5px 0;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .lang-btn:hover { border-color: var(--green); color: var(--green); }
+        .lang-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        /* ← Back to Hub button */
+        #backToHub {
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-dim); text-decoration: none;
+            padding: 4px 10px; border: 1px solid var(--sidebar-border); border-radius: 3px;
+            transition: color 0.15s, border-color 0.15s, background 0.15s; flex-shrink: 0;
+        }
+        #backToHub:hover { color: var(--green); border-color: var(--green); background: var(--green-dim); }
+        #backToHub svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+        /* ========================= LIVE HUD ========================= */
+        #liveHud {
+            display: none;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--sidebar-border);
+            padding: 6px 16px;
+            gap: 24px;
+            align-items: center;
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+        #liveHud.active { display: flex; }
+        .hud-value { transition: opacity 0.15s; }
+        #liveHud.dim .hud-value { opacity: 0.25; }
+        .hud-item { display: flex; flex-direction: column; align-items: center; min-width: 52px; flex-shrink: 0; }
+        .hud-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+        .hud-value { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--green); line-height: 1.1; }
+        .hud-unit { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--text-dim); }
+        .hud-sep { width: 1px; height: 32px; background: var(--sidebar-border); flex-shrink: 0; }
+
+        #content {
+            flex-grow: 1; overflow-y: auto; padding: 16px;
+            scrollbar-width: thin; scrollbar-color: var(--sidebar-border) transparent;
+        }
+        #content::-webkit-scrollbar { width: 4px; }
+        #content::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 2px; }
+
+        /* Placeholder */
+        #placeholder {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; background: var(--home-gradient);
+        }
+        .placeholder-icon { font-size: 56px; opacity: 0.12; margin-bottom: 20px; }
+        .placeholder-title {
+            font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--text); margin-bottom: 8px;
+        }
+        .placeholder-sub { font-size: 13px; color: var(--text-dim); text-align: center; max-width: 320px; line-height: 1.6; }
+        .placeholder-hint { margin-top: 24px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); opacity: 0.6; }
+
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--sidebar-border); }
+        .section-number { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--green); opacity: 0.6; }
+        .section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text); }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .stat-card { background: var(--card); border: 1px solid var(--sidebar-border); border-radius: 6px; padding: 12px 14px; transition: border-color 0.2s; }
+        .stat-card:hover { border-color: var(--green); }
+        .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 6px; }
+        .stat-value { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; color: var(--green); line-height: 1; }
+        .stat-unit { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+        .stat-card.highlight { border-color: var(--green); background: var(--green-dim); }
+
+        /* ========================= COMBINED CHART LEGEND ========================= */
+        .cleg-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer;
+            border: 1px solid var(--sidebar-border); background: var(--card);
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--text-dim);
+            transition: all 0.15s; user-select: none;
+        }
+        .cleg-btn:hover { border-color: var(--text-dim); color: var(--text); }
+        .cleg-btn.active { color: var(--text); }
+        .cleg-btn.inactive { opacity: 0.35; }
+        .cleg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+
+        .chart-wrap {
+            background: var(--card); border: 1px solid var(--sidebar-border);
+            border-radius: 6px; padding: 14px; margin-bottom: 12px; position: relative;
+        }
+        .chart-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .chart-title-hint { font-size: 8px; color: var(--text-dim); opacity: 0.4; letter-spacing: 1px; margin-left: auto; }
+
+        /* ========================= CUSTOM CROSSHAIR CHART ========================= */
+        .crh-container { position: relative; width: 100%; user-select: none; }
+        .crh-canvas { display: block; width: 100%; cursor: crosshair; }
+
+        /* Crosshair tooltip */
+        .crh-tooltip {
+            position: absolute; pointer-events: none;
+            background: var(--preview-bg); border: 1px solid var(--preview-border);
+            border-radius: 6px; padding: 8px 12px; z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            opacity: 0; transition: opacity 0.1s;
+            min-width: 120px;
+        }
+        .crh-tooltip.visible { opacity: 1; }
+        .crh-tooltip-time { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 1.5px; margin-bottom: 6px; border-bottom: 1px solid var(--sidebar-border); padding-bottom: 5px; }
+        .crh-tooltip-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 3px; }
+        .crh-tooltip-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); }
+        .crh-tooltip-val { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; }
+
+        /* Zoom controls */
+        .chart-controls { display: flex; gap: 5px; margin-bottom: 8px; }
+        .zoom-btn {
+            padding: 4px 10px; border: 1px solid var(--sidebar-border); border-radius: 3px;
+            background: transparent; color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; cursor: pointer; transition: all 0.15s;
+        }
+        .zoom-btn:hover { border-color: var(--green); color: var(--green); }
+        .zoom-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        .zoom-sep { flex-grow: 1; }
+
+        /* Two/three col */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+        /* Map */
+        #mapContainer { width: 100%; height: 500px; border-radius: 6px; overflow: hidden; border: 1px solid var(--sidebar-border); margin-bottom: 12px; background: var(--card); }
+        #googleMap { width: 100%; height: 100%; }
+        .map-no-data { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1.5px; flex-direction: column; gap: 8px; }
+
+        /* Legend */
+        .speed-legend { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .speed-legend-bar { flex-grow: 1; height: 6px; border-radius: 3px; background: linear-gradient(to right, #00d068, #ffdd00, #ff3300); }
+        .speed-legend-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); }
+
+        /* Playback controls */
+        #playbackBar {
+            display: flex; flex-direction: column; gap: 8px;
+            background: var(--card); border: 1px solid var(--sidebar-border);
+            border-radius: 6px; padding: 10px 14px; margin-bottom: 10px;
+        }
+        #playbackRow1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .pb-btn {
+            padding: 0; width: 32px; height: 32px; border: 1px solid var(--sidebar-border);
+            border-radius: 4px; background: transparent; color: var(--text-dim);
+            font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; flex-shrink: 0;
+        }
+        .pb-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        .pb-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        #pbSpeedLabel {
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+            color: var(--green); min-width: 42px; text-align: center;
+            border: 1px solid var(--green); border-radius: 3px; padding: 3px 6px;
+        }
+        .pb-speed-btn {
+            padding: 4px 8px; border: 1px solid var(--sidebar-border); border-radius: 3px;
+            background: transparent; color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; cursor: pointer; transition: all 0.15s;
+        }
+        .pb-speed-btn:hover { border-color: var(--green); color: var(--green); }
+        .pb-speed-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        #pbTime {
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim);
+            margin-left: auto; white-space: nowrap;
+        }
+        #playbackRow2 { display: flex; align-items: center; gap: 8px; }
+        #pbScrubber {
+            flex-grow: 1; -webkit-appearance: none; appearance: none;
+            height: 3px; background: var(--sidebar-border); border-radius: 2px; cursor: pointer; outline: none;
+        }
+        #pbScrubber::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 12px; height: 12px;
+            border-radius: 50%; background: var(--green);
+            box-shadow: 0 0 6px var(--green-glow); cursor: pointer;
+        }
+        #pbScrubber::-moz-range-thumb {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--green); border: none;
+            box-shadow: 0 0 6px var(--green-glow); cursor: pointer;
+        }
+        /* Telemetry overlay on map */
+        #mapTelemetry {
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            background: rgba(8,8,9,0.88); border: 1px solid var(--sidebar-border);
+            border-radius: 6px; padding: 10px 14px; min-width: 170px;
+            display: none; backdrop-filter: blur(4px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        #mapTelemetry.visible { display: block; }
+        .mtel-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 5px; }
+        .mtel-row:last-child { margin-bottom: 0; }
+        .mtel-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .mtel-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--green); line-height: 1; }
+        .mtel-unit { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--text-dim); margin-left: 2px; }
+        .mtel-divider { height: 1px; background: var(--sidebar-border); margin: 6px 0; opacity: 0.5; }
+        #mapContainer { position: relative; }
+
+        /* Gear bars */
+        .gear-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .gear-bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--green); min-width: 58px; }
+        .gear-bar-track { flex-grow: 1; height: 6px; background: var(--sidebar-border); border-radius: 3px; }
+        .gear-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.6s cubic-bezier(.17,.67,.39,1.2); }
+        .gear-bar-pct { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); min-width: 40px; text-align: right; }
+        .gear-bar-time { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); min-width: 50px; text-align: right; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .data-table th { background: var(--table-header-bg); padding: 8px 10px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--sidebar-border); }
+        .data-table td { padding: 7px 10px; border-bottom: 1px solid var(--table-border); color: var(--table-cell-color); }
+        .data-table tr:hover td { background: var(--menu-hover-bg); }
+        .data-table .mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+        .data-table .val-green { color: var(--green); font-weight: 600; }
+
+        .export-btn {
+            padding: 7px 14px; border: 1px solid var(--sidebar-border); border-radius: 4px;
+            background: transparent; color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+        }
+        .export-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 28px; left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            background: var(--green); color: #000;
+            padding: 10px 20px; border-radius: 6px;
+            font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+            letter-spacing: 3px; font-size: 11px; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s; z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px var(--green-glow);
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Insight cards */
+        .insight-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .insight-card {
+            background: var(--card); border: 1px solid var(--sidebar-border); border-radius: 6px;
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+            transition: border-color 0.2s;
+        }
+        .insight-card:hover { border-color: var(--green); }
+        .ins-header { display: flex; align-items: center; gap: 8px; }
+        .ins-tag {
+            font-family: 'IBM Plex Mono', monospace; font-size: 8px; font-weight: 600;
+            letter-spacing: 1.5px; padding: 2px 6px; border: 1px solid;
+            border-radius: 2px; flex-shrink: 0;
+        }
+        .ins-title {
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--text-dim);
+        }
+        .ins-hero { display: flex; align-items: baseline; gap: 6px; }
+        .ins-value {
+            font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 800;
+            color: var(--text); line-height: 1;
+        }
+        .ins-sublabel {
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim);
+        }
+        .ins-rows { display: flex; flex-direction: column; gap: 5px; border-top: 1px solid var(--sidebar-border); padding-top: 8px; }
+        .ins-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .ins-row-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); flex-shrink: 0; }
+        .ins-row-val { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text); text-align: right; }
+
+        canvas { display: block; }
+        /* ========================= TRIP LIBRARY ========================= */
+        #tripLibrary {
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--sidebar-border);
+        }
+        #libraryHeader {
+            display: flex; align-items: center; padding: 8px 12px 6px;
+            gap: 6px; cursor: pointer; user-select: none;
+        }
+        #libraryHeader:hover { background: var(--menu-hover-bg); }
+        .lib-title {
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); flex-grow: 1;
+        }
+        .lib-count {
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+            color: var(--green); padding: 1px 5px; border: 1px solid var(--green);
+            border-radius: 3px; opacity: 0.7;
+        }
+        .lib-toggle { font-size: 9px; color: var(--text-dim); transition: transform 0.2s; }
+        .lib-toggle.open { transform: rotate(180deg); }
+        #libraryList {
+            max-height: 200px; overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: var(--sidebar-border) transparent;
+        }
+        #libraryList::-webkit-scrollbar { width: 3px; }
+        #libraryList::-webkit-scrollbar-thumb { background: var(--sidebar-border); }
+        .lib-item {
+            display: flex; align-items: center; padding: 7px 12px 7px 14px;
+            cursor: pointer; border-top: 1px solid var(--sidebar-border);
+            transition: background 0.12s; gap: 8px; position: relative;
+        }
+        .lib-item:hover { background: var(--menu-hover-bg); }
+        .lib-item.active { background: var(--menu-active-bg); }
+        .lib-item.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+            background: var(--green); box-shadow: 0 0 8px var(--green-glow);
+        }
+        .lib-item-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim);
+            flex-shrink: 0; transition: background 0.15s;
+        }
+        .lib-item.active .lib-item-dot { background: var(--green); }
+        .lib-item-info { flex-grow: 1; min-width: 0; }
+        .lib-item-name {
+            font-size: 11px; font-weight: 500; color: var(--text-dim);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: color 0.15s;
+        }
+        .lib-item.active .lib-item-name { color: var(--text); font-weight: 600; }
+        .lib-item-meta {
+            font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim);
+            opacity: 0.5; margin-top: 1px;
+        }
+        .lib-item-del {
+            font-size: 10px; opacity: 0; color: var(--text-dim); cursor: pointer;
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0;
+            transition: opacity 0.15s, color 0.15s;
+        }
+        .lib-item:hover .lib-item-del { opacity: 1; }
+        .lib-item-del:hover { color: #e74c3c !important; }
+        .lib-empty {
+            padding: 10px 14px; font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; color: var(--text-dim); opacity: 0.4; letter-spacing: 1px;
+        }
+        #uploadZone { margin: 8px 12px 8px; }
+
+        /* ========================= MOBILE ========================= */
+
+        /* Mobile hamburger — lives in #topBar on mobile */
+        #mobileMenuToggle {
+            display: none;
+            width: 36px; height: 36px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 5px;
+            background: var(--sidebar-bg);
+            cursor: pointer;
+            align-items: center; justify-content: center; flex-direction: column;
+            gap: 4px; padding: 0; flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        #mobileMenuToggle.open { border-color: var(--green); }
+        #mobileMenuToggle span {
+            display: block; width: 16px; height: 1.5px;
+            background: var(--text-dim); border-radius: 2px; transition: all 0.25s ease;
+        }
+        #mobileMenuToggle.open span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); background: var(--green); }
+        #mobileMenuToggle.open span:nth-child(2) { opacity: 0; }
+        #mobileMenuToggle.open span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); background: var(--green); }
+
+        /* Sidebar close button — inside .header */
+        #sidebarClose {
+            display: flex;
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            width: 32px; height: 32px;
+            border: 1px solid var(--sidebar-border); border-radius: 5px;
+            background: transparent; color: var(--text-dim);
+            cursor: pointer; align-items: center; justify-content: center;
+            padding: 0; transition: border-color 0.15s, color 0.15s, background 0.15s; z-index: 1;
+        }
+        #sidebarClose:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        #sidebarOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+        #sidebarOverlay.visible { display: block; }
+
+        @media (max-width: 768px) {
+            #mobileMenuToggle { display: flex; }
+
+            #sidebar {
+                position: fixed; top: 0; left: 0;
+                height: 100%; width: 280px; z-index: 9999;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 4px 0 40px rgba(0,0,0,0.8);
+                padding-top: env(safe-area-inset-top, 0px);
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+            #sidebar.open { transform: translateX(0); }
+
+            #main { width: 100%; }
+
+            /* Top bar — no extra padding, hamburger is inline */
+            #topBar { padding-left: 12px; padding-right: 12px; gap: 10px; }
+
+            /* Content area */
+            #content { padding: 10px; padding-bottom: 20px; }
+
+            /* HUD — scrollable horizontally */
+            #liveHud { gap: 14px; padding: 6px 10px; overflow-x: auto; }
+            .hud-item { min-width: 44px; }
+            .hud-value { font-size: 18px; }
+
+            /* Stat grid — 2 columns */
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .stat-value { font-size: 22px; }
+
+            /* Two/three col → single col */
+            .two-col { grid-template-columns: 1fr; gap: 8px; }
+            .three-col { grid-template-columns: 1fr 1fr; gap: 6px; }
+
+            /* Map height */
+            #mapContainer { height: 300px; }
+
+            /* Charts */
+            .chart-wrap { padding: 10px; }
+
+            /* Nav items — bigger touch targets */
+            .nav-item { padding: 13px 16px; min-height: 48px; }
+
+            /* Library items */
+            .lib-item { padding: 10px 12px; min-height: 44px; }
+            .lib-item-del { opacity: 1; }
+
+            /* Upload zone */
+            #uploadZone { padding: 14px 10px; }
+
+            /* Theme switcher */
+            #themeSwitcher { padding: 8px 10px; gap: 6px; }
+            .theme-btn { width: 24px; height: 24px; min-height: unset; padding: 0; font-size: unset; }
+
+            /* Placeholder */
+            .placeholder-icon { font-size: 40px; }
+            .placeholder-title { font-size: 22px; }
+            .placeholder-hint { font-size: 9px; }
+
+            /* Zoom buttons */
+            .zoom-btn { padding: 6px 10px; font-size: 9px; min-height: 36px; }
+
+            /* Topbar title */
+            .topbar-title { font-size: 13px; }
+            .topbar-badge { font-size: 8px; padding: 3px 6px; }
+        }
+
+        @media (max-width: 400px) {
+            #sidebar { width: 260px; }
+            .three-col { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<div id="sidebar">
+    <div class="header">
+        <div class="header-inner">
+            <div class="header-eyebrow">Kawasaki KLE500SE</div>
+            <div class="header-title">Trip Analyzer</div>
+            <div id="headerRouteLabel" style="
+                font-family:'IBM Plex Mono',monospace; font-size:10px;
+                color:var(--green); margin-top:4px; opacity:0;
+                transition:opacity 0.4s; letter-spacing:.3px;
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            "></div>
+        </div>
+        <button id="sidebarClose" onclick="closeMobileSidebar()" aria-label="Закрыть меню">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- TRIP LIBRARY -->
+    <div id="tripLibrary">
+        <div id="libraryHeader" onclick="toggleLibrary()">
+            <span class="lib-title">Trips</span>
+            <span class="lib-count" id="libCount">0</span>
+            <span class="lib-toggle open" id="libToggle">▼</span>
+        </div>
+        <div id="libraryList">
+        </div>
+    </div>
+
+    <div id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📂</div>
+        <div class="upload-label">Add CSV Files</div>
+        <div class="upload-sub">Click or drag — multiple files OK</div>
+    </div>
+    <input type="file" id="fileInput" accept=".csv" multiple>
+
+    <div id="tripInfo"></div>
+
+    <nav id="navMenu">
+        <div class="nav-item active" onclick="showSection('overview')" data-section="overview"><span class="nav-idx">01</span> Overview</div>
+        <div class="nav-item" onclick="showSection('map')" data-section="map"><span class="nav-idx">02</span> Route Map</div>
+        <div class="nav-item" onclick="showSection('speed')" data-section="speed"><span class="nav-idx">03</span> Speed</div>
+        <div class="nav-item" onclick="showSection('engine')" data-section="engine"><span class="nav-idx">04</span> Engine / RPM</div>
+        <div class="nav-item" onclick="showSection('temperature')" data-section="temperature"><span class="nav-idx">05</span> Temperature</div>
+        <div class="nav-item" onclick="showSection('gears')" data-section="gears"><span class="nav-idx">06</span> Gear Usage</div>
+        <div class="nav-item" onclick="showSection('lean')" data-section="lean"><span class="nav-idx">07</span> Lean Angle</div>
+        <div class="nav-item" onclick="showSection('acceleration')" data-section="acceleration"><span class="nav-idx">08</span> Acceleration / G</div>
+        <div class="nav-item" onclick="showSection('fuel')" data-section="fuel"><span class="nav-idx">09</span> Fuel</div>
+        <div class="nav-item" onclick="showSection('combined')" data-section="combined"><span class="nav-idx">10</span> Combined Chart</div>
+        <div class="nav-item" onclick="showSection('scatter')" data-section="scatter"><span class="nav-idx">10b</span> RPM vs Speed</div>
+        <div class="nav-item" onclick="showSection('insights')" data-section="insights"><span class="nav-idx">11</span> Insights</div>
+        <div class="nav-item" onclick="showSection('raw')" data-section="raw"><span class="nav-idx">12</span> Raw Data</div>
+    </nav>
+
+    <div id="themeSwitcher">
+        <span class="theme-switcher-label">Theme</span>
+        <button class="theme-btn" data-theme="dark"      onclick="setTheme('dark',this)"      title="Dark"></button>
+        <button class="theme-btn" data-theme="oem-green" onclick="setTheme('oem-green',this)" title="OEM Green"></button>
+        <button class="theme-btn" data-theme="blueprint" onclick="setTheme('blueprint',this)" title="Blueprint"></button>
+        <button class="theme-btn" data-theme="light"     onclick="setTheme('light',this)"     title="Light"></button>
+    </div>
+    <div id="langSwitcher">
+        <button class="lang-btn active" data-lang="ru" onclick="setLang('ru',this)">RU</button>
+        <button class="lang-btn"        data-lang="en" onclick="setLang('en',this)">EN</button>
+        <button class="lang-btn"        data-lang="es" onclick="setLang('es',this)">ES</button>
+    </div>
+</div>
+
+<div id="main">
+    <div id="topBar">
+        <button id="mobileMenuToggle" onclick="toggleMobileSidebar()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <button id="sidebarReveal" onclick="revealSidebar()" aria-label="Открыть меню" title="Открыть панель">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 3h10M2 7h10M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <span class="topbar-label" data-i18n="module">Module</span>
+        <span class="topbar-title" id="topBarTitle">Trip Analyzer</span>
+        <div class="topbar-sep"></div>
+        <span class="topbar-badge" id="topBarBadge">NO FILE</span>
+        <a id="backToHub" href="index.html" title="Back to Hub">
+            <svg viewBox="0 0 10 10"><polyline points="6,2 2,5 6,8"/></svg>
+            <span data-i18n="hub">Hub</span>
+        </a>
+    </div>
+
+    <!-- LIVE HUD — показывается при hover на любом графике -->
+    <div id="liveHud">
+        <div class="hud-item"><div class="hud-label">Time</div><div class="hud-value" id="hud-time">—</div><div class="hud-unit">s</div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">Speed</div><div class="hud-value" id="hud-speed">—</div><div class="hud-unit">km/h</div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">RPM</div><div class="hud-value" id="hud-rpm">—</div><div class="hud-unit">rpm</div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">Gear</div><div class="hud-value" id="hud-gear">—</div><div class="hud-unit"></div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">Temp</div><div class="hud-value" id="hud-temp">—</div><div class="hud-unit">°C</div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">Lean</div><div class="hud-value" id="hud-lean">—</div><div class="hud-unit">°</div></div>
+        <div class="hud-sep"></div>
+        <div class="hud-item"><div class="hud-label">Accel</div><div class="hud-value" id="hud-accel">—</div><div class="hud-unit">G</div></div>
+    </div>
+
+    <div id="content">
+        <div id="placeholder">
+            <div class="placeholder-icon">🏍</div>
+            <div class="placeholder-title" data-i18n="noTrip">No Trip Loaded</div>
+            <div class="placeholder-sub" data-i18n="uploadHint">Upload a Rideology CSV file to analyze your ride — speed, RPM, gear usage, lean angles, route map and more.</div>
+            <div class="placeholder-hint" id="placeholderHint" data-i18n="uploadArrow">← Upload CSV to begin</div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="section-panel" id="panel-overview">
+            <div class="section-header"><span class="section-number">01</span><span class="section-title">Trip Overview</span></div>
+            <div class="stat-grid" id="stat-overview"></div>
+            <div class="two-col">
+                <div class="chart-wrap"><div class="chart-title">Speed km/h <span class="chart-title-hint">HOVER TO INSPECT</span></div><div class="crh-container" id="crh-speedOverview"></div></div>
+                <div class="chart-wrap"><div class="chart-title">Engine RPM <span class="chart-title-hint">HOVER TO INSPECT</span></div><div class="crh-container" id="crh-rpmOverview"></div></div>
+            </div>
+            <div class="two-col">
+                <div class="chart-wrap"><div class="chart-title">Coolant Temperature °C</div><div class="crh-container" id="crh-tempOverview"></div></div>
+                <div class="chart-wrap"><div class="chart-title">Gear Position</div><div class="crh-container" id="crh-gearOverview"></div></div>
+            </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="section-panel" id="panel-map">
+            <div class="section-header"><span class="section-number">02</span><span class="section-title">Route Map</span></div>
+            <div class="speed-legend">
+                <span class="speed-legend-label">Slow</span>
+                <div class="speed-legend-bar"></div>
+                <span class="speed-legend-label">Fast</span>
+            </div>
+
+            <!-- Playback controls -->
+            <div id="playbackBar">
+                <div id="playbackRow1">
+                    <button class="pb-btn" id="pbPlayBtn" onclick="pbPlay()" title="Play / Pause">▶</button>
+                    <button class="pb-btn" onclick="pbReset()" title="Reset">⏮</button>
+                    <div id="pbSpeedLabel">1×</div>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(0.5)">0.5×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(1)">1×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(2)">2×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(5)">5×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(10)">10×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(25)">25×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(50)">50×</button>
+                    <button class="pb-speed-btn" onclick="pbSetSpeed(100)">100×</button>
+                    <div id="pbTime">0:00 / 0:00</div>
+                </div>
+                <div id="playbackRow2">
+                    <input type="range" id="pbScrubber" min="0" max="1000" value="0"
+                           oninput="pbScrub(this.value)" onchange="pbScrubEnd()">
+                </div>
+            </div>
+
+            <div id="mapContainer">
+                <div class="map-no-data" id="mapPlaceholder"><span>🗺</span><span>Load a trip file to display route</span></div>
+                <div id="googleMap"></div>
+                <!-- Live telemetry overlay -->
+                <div id="mapTelemetry">
+                    <div class="mtel-row"><span class="mtel-label">Speed</span><span><span class="mtel-val" id="mtel-speed">0</span><span class="mtel-unit">km/h</span></span></div>
+                    <div class="mtel-row"><span class="mtel-label">RPM</span><span><span class="mtel-val" id="mtel-rpm">0</span><span class="mtel-unit">rpm</span></span></div>
+                    <div class="mtel-row"><span class="mtel-label">Gear</span><span><span class="mtel-val" id="mtel-gear">N</span></span></div>
+                    <div class="mtel-divider" id="mtel-div-temp"></div>
+                    <div class="mtel-row" id="mtel-row-temp"><span class="mtel-label">Temp</span><span><span class="mtel-val" id="mtel-temp">—</span><span class="mtel-unit">°C</span></span></div>
+                    <div class="mtel-divider" id="mtel-div-accel"></div>
+                    <div class="mtel-row" id="mtel-row-accel"><span class="mtel-label">Accel</span><span><span class="mtel-val" id="mtel-accel">—</span><span class="mtel-unit">G</span></span></div>
+                    <div class="mtel-divider" id="mtel-div-lean"></div>
+                    <div class="mtel-row" id="mtel-row-lean"><span class="mtel-label">Lean</span><span><span class="mtel-val" id="mtel-lean">—</span><span class="mtel-unit">°</span></span></div>
+                    <div class="mtel-divider" id="mtel-div-throttle"></div>
+                    <div class="mtel-row" id="mtel-row-throttle"><span class="mtel-label">Throttle</span><span><span class="mtel-val" id="mtel-throttle">—</span><span class="mtel-unit">%</span></span></div>
+                    <div class="mtel-divider" id="mtel-div-fuel"></div>
+                    <div class="mtel-row" id="mtel-row-fuel"><span class="mtel-label">Fuel</span><span><span class="mtel-val" id="mtel-fuel">—</span><span class="mtel-unit">L/100</span></span></div>
+                </div>
+            </div>
+            <div class="stat-grid" id="stat-map"></div>
+        </div>
+
+        <!-- SPEED -->
+        <div class="section-panel" id="panel-speed">
+            <div class="section-header"><span class="section-number">03</span><span class="section-title">Speed Analysis</span></div>
+            <div class="stat-grid" id="stat-speed"></div>
+            <div class="chart-wrap">
+                <div class="chart-title">Speed over Time (km/h) <span class="chart-title-hint">SCROLL TO ZOOM · DRAG TO PAN</span></div>
+                <div class="chart-controls">
+                    <button class="zoom-btn active" onclick="setZoom('speed', 0)">All</button>
+                    <button class="zoom-btn" onclick="setZoom('speed', 300)">5 min</button>
+                    <button class="zoom-btn" onclick="setZoom('speed', 600)">10 min</button>
+                    <button class="zoom-btn" onclick="setZoom('speed', 1800)">30 min</button>
+                </div>
+                <div class="crh-container" id="crh-speed"></div>
+            </div>
+            <div class="chart-wrap"><div class="chart-title">Speed Distribution</div><div class="crh-container" id="crh-speedHist"></div></div>
+        </div>
+
+        <!-- ENGINE -->
+        <div class="section-panel" id="panel-engine">
+            <div class="section-header"><span class="section-number">04</span><span class="section-title">Engine / RPM</span></div>
+            <div class="stat-grid" id="stat-engine"></div>
+            <div class="chart-wrap">
+                <div class="chart-title">RPM over Time <span class="chart-title-hint">SCROLL TO ZOOM · DRAG TO PAN</span></div>
+                <div class="chart-controls">
+                    <button class="zoom-btn active" onclick="setZoom('rpm', 0)">All</button>
+                    <button class="zoom-btn" onclick="setZoom('rpm', 300)">5 min</button>
+                    <button class="zoom-btn" onclick="setZoom('rpm', 600)">10 min</button>
+                    <button class="zoom-btn" onclick="setZoom('rpm', 1800)">30 min</button>
+                </div>
+                <div class="crh-container" id="crh-rpm"></div>
+            </div>
+            <div class="chart-wrap"><div class="chart-title">RPM Distribution</div><div class="crh-container" id="crh-rpmHist"></div></div>
+        </div>
+
+        <!-- TEMPERATURE -->
+        <div class="section-panel" id="panel-temperature">
+            <div class="section-header"><span class="section-number">05</span><span class="section-title">Temperature</span></div>
+            <div class="stat-grid" id="stat-temp"></div>
+            <div class="chart-wrap"><div class="chart-title">Coolant Temperature over Time (°C)</div><div class="crh-container" id="crh-temp"></div></div>
+        </div>
+
+        <!-- GEARS -->
+        <div class="section-panel" id="panel-gears">
+            <div class="section-header"><span class="section-number">06</span><span class="section-title">Gear Usage</span></div>
+            <div class="stat-grid" id="stat-gears"></div>
+            <div class="two-col">
+                <div class="chart-wrap"><div class="chart-title">Gear over Time</div><div class="crh-container" id="crh-gear"></div></div>
+                <div class="chart-wrap"><div class="chart-title">Time per Gear</div><div id="gearDistBars" style="padding-top:8px"></div></div>
+            </div>
+        </div>
+
+        <!-- LEAN -->
+        <div class="section-panel" id="panel-lean">
+            <div class="section-header"><span class="section-number">07</span><span class="section-title">Lean Angle</span></div>
+            <div class="stat-grid" id="stat-lean"></div>
+            <div class="chart-wrap"><div class="chart-title">Lean Angle over Time (°)</div><div class="crh-container" id="crh-lean"></div></div>
+        </div>
+
+        <!-- ACCELERATION -->
+        <div class="section-panel" id="panel-acceleration">
+            <div class="section-header"><span class="section-number">08</span><span class="section-title">Acceleration / G-Force</span></div>
+            <div class="stat-grid" id="stat-accel"></div>
+            <div class="chart-wrap"><div class="chart-title">Longitudinal Acceleration (G)</div><div class="crh-container" id="crh-accel"></div></div>
+        </div>
+
+        <!-- FUEL -->
+        <div class="section-panel" id="panel-fuel">
+            <div class="section-header"><span class="section-number">09</span><span class="section-title">Fuel Consumption</span></div>
+            <div id="fuel-disclaimer" style="display:none;margin-bottom:12px;padding:10px 14px;border:1px solid var(--sidebar-border);border-radius:6px;background:var(--card);">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--green);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">⚠ Estimated — no fuel sensor data</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);line-height:1.6;">
+                    Consumption is calculated from RPM load, speed, and distance. Model assumes a typical parallel-twin 450–650cc engine.
+                    Accuracy: <b style="color:var(--text);">±20–30%</b>. For reference only.
+                </div>
+            </div>
+            <div class="stat-grid" id="stat-fuel"></div>
+            <div class="chart-wrap" id="fuel-chart-wrap">
+                <div class="chart-title" id="fuel-chart-title">Instant Fuel Consumption (L/100km)</div>
+                <div class="crh-container" id="crh-fuel"></div>
+            </div>
+            <div class="chart-wrap" id="fuel-est-breakdown" style="display:none;">
+                <div class="chart-title">Estimated Consumption by Speed Zone</div>
+                <div id="fuel-zone-bars" style="padding-top:8px;"></div>
+            </div>
+        </div>
+
+        <!-- COMBINED CHART -->
+        <div class="section-panel" id="panel-combined">
+            <div class="section-header"><span class="section-number">10</span><span class="section-title">Combined Chart</span></div>
+            <div class="chart-wrap">
+                <div class="chart-title" style="margin-bottom:12px">All Channels <span class="chart-title-hint">SCROLL TO ZOOM · DRAG TO PAN · CLICK LEGEND TO TOGGLE</span></div>
+                <div id="combinedLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
+                <div class="chart-controls">
+                    <button class="zoom-btn active" onclick="setZoomCombined(0)">All</button>
+                    <button class="zoom-btn" onclick="setZoomCombined(300)">5 min</button>
+                    <button class="zoom-btn" onclick="setZoomCombined(600)">10 min</button>
+                    <button class="zoom-btn" onclick="setZoomCombined(1800)">30 min</button>
+                </div>
+                <div class="crh-container" id="crh-combined" style="position:relative;">
+                    <div id="crh-combined-tooltip" class="crh-tooltip" style="min-width:160px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCATTER RPM vs SPEED -->
+        <div class="section-panel" id="panel-scatter">
+            <div class="section-header"><span class="section-number">10b</span><span class="section-title">RPM vs Speed</span></div>
+            <div class="stat-grid" id="stat-scatter"></div>
+            <div class="chart-wrap">
+                <div class="chart-title">RPM vs Speed — by Gear <span class="chart-title-hint">HOVER TO INSPECT</span></div>
+                <div id="scatter-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+                <div class="crh-container" id="crh-scatter" style="position:relative;"></div>
+            </div>
+        </div>
+
+        <!-- INSIGHTS -->
+        <div class="section-panel" id="panel-insights">
+            <div class="section-header"><span class="section-number">11</span><span class="section-title">Ride Insights</span></div>
+            <div class="insight-grid" id="insightGrid"></div>
+        </div>
+
+        <!-- RAW DATA -->
+        <div class="section-panel" id="panel-raw">
+            <div class="section-header">
+                <span class="section-number">12</span>
+                <span class="section-title">Raw Data</span>
+                <button class="export-btn" onclick="exportCSV()" style="margin-left:auto;">Export CSV</button>
+            </div>
+            <div class="chart-wrap" style="overflow-x:auto; padding:0;">
+                <table class="data-table" id="rawTable">
+                    <thead>
+                        <tr>
+                            <th>Time s</th><th>Lat</th><th>Lon</th><th>Speed</th><th>RPM</th>
+                            <th>Temp °C</th><th>Gear</th><th>Lean °</th><th>Accel G</th>
+                            <th>Throttle</th><th>Brake</th><th>Fuel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rawBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast">OK</div>
+
+<script>
+// ========================= GLOBALS =========================
+
+// ========================= I18N =========================
+
+const i18n = {
+    ru: {
+        module:      'Анализатор',
+        hub:         'Hub',
+        noTrip:      'Нет загруженного трипа',
+        uploadHint:  'Загрузите CSV-файл Rideology для анализа поездки — скорость, обороты, передачи, наклоны и маршрут.',
+        uploadArrow: '← Загрузить CSV',
+        noTripsYet:  'Трипы не загружены',
+        badFile:     'НЕВЕРНЫЙ ФАЙЛ',
+        unknownFmt:  'НЕИЗВЕСТНЫЙ ФОРМАТ',
+        readError:   'ОШИБКА ЧТЕНИЯ',
+        loaded:      'ЗАГРУЖЕНО',
+        tripsAdded:  'ТРИПОВ ДОБАВЛЕНО',
+    },
+    en: {
+        module:      'Trip Analyzer',
+        hub:         'Hub',
+        noTrip:      'No Trip Loaded',
+        uploadHint:  'Upload a Rideology CSV file to analyze your ride — speed, RPM, gear usage, lean angles, route map and more.',
+        uploadArrow: '← Upload CSV to begin',
+        noTripsYet:  'No trips loaded yet',
+        badFile:     'BAD FILE',
+        unknownFmt:  'UNKNOWN FORMAT',
+        readError:   'READ ERROR',
+        loaded:      'LOADED',
+        tripsAdded:  'TRIPS ADDED',
+    },
+    es: {
+        module:      'Analizador',
+        hub:         'Hub',
+        noTrip:      'Sin ruta cargada',
+        uploadHint:  'Sube un archivo CSV de Rideology para analizar tu viaje — velocidad, RPM, marchas, ángulos y ruta.',
+        uploadArrow: '← Subir CSV para comenzar',
+        noTripsYet:  'No hay rutas cargadas',
+        badFile:     'ARCHIVO INVÁLIDO',
+        unknownFmt:  'FORMATO DESCONOCIDO',
+        readError:   'ERROR DE LECTURA',
+        loaded:      'CARGADO',
+        tripsAdded:  'RUTAS AÑADIDAS',
+    },
+};
+
+// Текущий язык — инициализируется до любого кода
+const _savedLang = localStorage.getItem('kleLang') || 'ru';
+let _t = i18n[_savedLang] || i18n.ru;
+
+    function setLang(lang, btn) {
+        _t = i18n[lang] || i18n.ru;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (_t[key] !== undefined) el.textContent = _t[key];
+        });
+        document.documentElement.lang = lang;
+        localStorage.setItem('kleLang', lang);
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const emptyEl = document.querySelector('#libraryList .empty-state');
+        if (emptyEl) emptyEl.textContent = _t.noTripsYet;
+    }
+
+let tripData = [];
+let tripMeta = {};
+let activeSection = 'overview';
+let mapInstance = null;
+let sampledData = [];   // downsampled for charts
+let zoomRanges = {};    // per-chart zoom state
+
+// ========================= TRIP LIBRARY =========================
+// Stored in localStorage as array of {id, name, meta, rows (compressed as CSV text)}
+let tripLibrary = [];    // [{id, name, duration, distKm, rowCount, csvText}]
+let activeTripId = null;
+let libraryOpen = true;
+
+    function libKey() { return 'kleTrips_v1'; }
+
+    function saveLibrary() {
+        // Only save metadata (no CSV text — too large for localStorage)
+        try {
+            const slim = tripLibrary.map(t => ({
+                id: t.id, name: t.name, duration: t.duration,
+                distKm: t.distKm, rowCount: t.rowCount
+                // csvText intentionally excluded
+            }));
+            localStorage.setItem(libKey(), JSON.stringify(slim));
+        } catch(e) { /* ignore */ }
+    }
+
+    function loadLibrary() {
+        // Library is session-only (CSV data too large for localStorage).
+        // Just reset state — user re-loads files each session.
+        tripLibrary = [];
+        renderLibraryList();
+    }
+
+    function addTripToLibrary(name, csvText, rows, meta) {
+        const id = 'trip_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+        const duration = rows.length > 0 ? rows[rows.length-1].elapsed : 0;
+        const distKm = calcDistance(rows);
+        // Check for duplicate by name
+        const existing = tripLibrary.findIndex(t => t.name === name);
+        if (existing >= 0) {
+            tripLibrary[existing] = { id: tripLibrary[existing].id, name, duration, distKm, rowCount: rows.length, csvText };
+            saveLibrary();
+            renderLibraryList();
+            return tripLibrary[existing].id;
+        }
+        const entry = { id, name, duration, distKm, rowCount: rows.length, csvText };
+        tripLibrary.push(entry);
+        saveLibrary();
+        renderLibraryList();
+        return id;
+    }
+
+function selectTrip(id) {
+    const entry = tripLibrary.find(t => t.id === id);
+    if (!entry) return;
+    activeTripId = id;
+    localStorage.setItem('kleLastTrip', id);
+    const { meta, rows } = parseCSV(entry.csvText);
+    tripMeta = meta; tripData = rows;
+    onTripLoaded(entry.name, id);
+    renderLibraryList();
+}
+
+function deleteTrip(id, e) {
+    if (e) e.stopPropagation();
+    tripLibrary = tripLibrary.filter(t => t.id !== id);
+    saveLibrary();
+    if (activeTripId === id) {
+        activeTripId = null;
+        tripData = []; tripMeta = {};
+        if (tripLibrary.length > 0) {
+            selectTrip(tripLibrary[tripLibrary.length-1].id);
+        } else {
+            document.getElementById('placeholder').style.display = 'flex';
+            document.getElementById('tripInfo').style.display = 'none';
+            document.getElementById('topBarBadge').textContent = 'NO FILE';
+            document.getElementById('topBarTitle').textContent = 'Trip Analyzer';
+        }
+    }
+    renderLibraryList();
+}
+
+function renderLibraryList() {
+    const list = document.getElementById('libraryList');
+    const count = document.getElementById('libCount');
+    count.textContent = tripLibrary.length;
+
+    // Fully rebuild list contents — avoids stale DOM refs
+    list.innerHTML = '';
+
+    if (tripLibrary.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'lib-empty';
+        empty.textContent = _t.noTripsYet || 'No trips loaded yet';
+        list.appendChild(empty);
+        return;
+    }
+
+    [...tripLibrary].reverse().forEach(trip => {
+        const div = document.createElement('div');
+        div.className = 'lib-item' + (trip.id === activeTripId ? ' active' : '');
+        div.onclick = () => selectTrip(trip.id);
+
+        const distStr = trip.distKm ? trip.distKm.toFixed(1) + 'km' : '';
+        const durStr = trip.duration ? fmtTime(trip.duration) : '';
+        const metaStr = [durStr, distStr, trip.rowCount ? trip.rowCount.toLocaleString() + 'pts' : ''].filter(Boolean).join(' · ');
+
+        const dot = document.createElement('div');
+        dot.className = 'lib-item-dot';
+
+        const info = document.createElement('div');
+        info.className = 'lib-item-info';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'lib-item-name';
+        nameEl.title = trip.name;
+        nameEl.textContent = trip.name;
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'lib-item-meta';
+        metaEl.textContent = metaStr;
+
+        info.appendChild(nameEl);
+        info.appendChild(metaEl);
+
+        const del = document.createElement('div');
+        del.className = 'lib-item-del';
+        del.title = 'Remove';
+        del.textContent = '✕';
+        del.onclick = (e) => { e.stopPropagation(); deleteTrip(trip.id, e); };
+
+        div.appendChild(dot);
+        div.appendChild(info);
+        div.appendChild(del);
+        list.appendChild(div);
+    });
+}
+
+function toggleLibrary() {
+    libraryOpen = !libraryOpen;
+    document.getElementById('libraryList').style.display = libraryOpen ? '' : 'none';
+    document.getElementById('libToggle').classList.toggle('open', libraryOpen);
+}
+
+// ========================= THEME =========================
+function setTheme(theme, btn) {
+    document.documentElement.setAttribute('data-theme', theme === 'dark' ? '' : theme);
+    localStorage.setItem('kleTheme', theme);
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (tripData.length) setTimeout(renderAllCharts, 30);
+}
+(function() {
+    const saved = localStorage.getItem('kleTheme') || 'dark';
+    const btn = document.querySelector(`.theme-btn[data-theme="${saved}"]`);
+    setTheme(saved, btn);
+})();
+
+// Load persisted trips on startup
+// loadLibrary called at end of script
+
+function gc(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// ========================= CROSSHAIR CHART ENGINE =========================
+// A lightweight canvas-based chart with crosshair, tooltip, zoom & pan
+
+const crhCharts = {}; // id -> chart state
+
+function makeCRHChart(containerId, xData, yData, opts = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    const dpr = window.devicePixelRatio || 1;
+    const height = opts.height || 180;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'crh-canvas';
+    canvas.style.height = height + 'px';
+    container.appendChild(canvas);
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'crh-tooltip';
+    tooltip.innerHTML = `<div class="crh-tooltip-time" id="${containerId}-tt-time"></div><div class="crh-tooltip-row"><div class="crh-tooltip-label">${opts.label || 'Value'}</div><div class="crh-tooltip-val" id="${containerId}-tt-val" style="color:${opts.color || gc('--green')}">—</div></div>`;
+    container.appendChild(tooltip);
+
+    const state = {
+        canvas, tooltip, xData, yData, opts,
+        zoomStart: 0, zoomEnd: xData.length - 1,
+        isDragging: false, dragStartX: 0, dragStartZS: 0, dragStartZE: 0,
+        mouseIdx: -1
+    };
+    crhCharts[containerId] = state;
+
+    function resize() {
+        const w = container.clientWidth;
+        canvas.width = w * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = w + 'px';
+        draw(state);
+    }
+
+    canvas.addEventListener('mousemove', e => onMouseMove(e, state, containerId));
+    canvas.addEventListener('mouseleave', e => onMouseLeave(e, state));
+    canvas.addEventListener('wheel', e => { e.preventDefault(); onWheel(e, state); }, { passive: false });
+    canvas.addEventListener('mousedown', e => { state.isDragging = true; state.dragStartX = e.clientX; state.dragStartZS = state.zoomStart; state.dragStartZE = state.zoomEnd; });
+    window.addEventListener('mouseup', () => { state.isDragging = false; });
+
+    new ResizeObserver(resize).observe(container);
+    resize();
+    return state;
+}
+
+function draw(state) {
+    const { canvas, xData, yData, opts, zoomStart, zoomEnd } = state;
+    if (!canvas.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = { l: 44 * dpr, r: 12 * dpr, t: 8 * dpr, b: 28 * dpr };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const slice_x = xData.slice(zoomStart, zoomEnd + 1);
+    const slice_y = yData.slice(zoomStart, zoomEnd + 1);
+    if (!slice_x.length) return;
+
+    const minX = slice_x[0], maxX = slice_x[slice_x.length - 1];
+    // Use full dataset for Y scale to prevent axis jumping while panning/zooming
+    let minY = opts.minY !== undefined ? opts.minY : Math.min(...yData);
+    let maxY = opts.maxY !== undefined ? opts.maxY : Math.max(...yData);
+    if (minY === maxY) { minY -= 1; maxY += 1; }
+    const padY = (maxY - minY) * 0.08;
+    minY -= padY; maxY += padY;
+
+    const toX = v => pad.l + (v - minX) / (maxX - minX) * chartW;
+    const toY = v => pad.t + (1 - (v - minY) / (maxY - minY)) * chartH;
+
+    // Horizontal zone bands (e.g. temperature cold/normal/hot)
+    if (opts.zones && opts.zones.length) {
+        opts.zones.forEach(zone => {
+            const y0 = toY(Math.min(zone.max, maxY));
+            const y1 = toY(Math.max(zone.min, minY));
+            if (y1 <= y0) return;
+            ctx.save();
+            ctx.globalAlpha = 0.12;
+            ctx.fillStyle = zone.color;
+            ctx.fillRect(pad.l, y0, chartW, y1 - y0);
+            ctx.restore();
+            // Label on right edge
+            const midY = (y0 + y1) / 2;
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = zone.color;
+            ctx.font = `bold ${8.5 * dpr}px "IBM Plex Mono", monospace`;
+            ctx.textAlign = 'right';
+            ctx.fillText(zone.label.toUpperCase(), W - pad.r - 4*dpr, midY + 3*dpr);
+            ctx.restore();
+            // Dashed top boundary
+            if (zone.max < maxY && zone.max > minY) {
+                const lineY = toY(zone.max);
+                ctx.save();
+                ctx.globalAlpha = 0.28;
+                ctx.strokeStyle = zone.color;
+                ctx.lineWidth = dpr;
+                ctx.setLineDash([4*dpr, 6*dpr]);
+                ctx.beginPath(); ctx.moveTo(pad.l, lineY); ctx.lineTo(W - pad.r, lineY); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+        });
+    }
+
+    // Grid lines
+    const gridColor = gc('--sidebar-border');
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    const yTicks = 5;
+    ctx.font = `${9 * dpr}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = gc('--text-dim');
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= yTicks; i++) {
+        const v = minY + (maxY - minY) * i / yTicks;
+        const cy = toY(v);
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, cy); ctx.lineTo(W - pad.r, cy);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillText(fmtNum(v, opts.decimals || 0), pad.l - 4, cy + 3 * dpr);
+    }
+
+    // X axis ticks
+    ctx.textAlign = 'center';
+    const xTicks = Math.min(8, Math.floor(chartW / (50 * dpr)));
+    for (let i = 0; i <= xTicks; i++) {
+        const xv = minX + (maxX - minX) * i / xTicks;
+        const cx = toX(xv);
+        ctx.fillText(fmtAxis(xv), cx, H - 6 * dpr);
+    }
+
+    // Zero line for acceleration / lean
+    if (opts.zeroLine) {
+        ctx.strokeStyle = gc('--text-dim');
+        ctx.globalAlpha = 0.25;
+        ctx.lineWidth = dpr;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        const zy = toY(0);
+        ctx.beginPath(); ctx.moveTo(pad.l, zy); ctx.lineTo(W - pad.r, zy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    }
+
+    // Fill area
+    const color = opts.color || gc('--green');
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(toX(slice_x[0]), toY(slice_y[0]));
+    for (let i = 1; i < slice_x.length; i++) ctx.lineTo(toX(slice_x[i]), toY(slice_y[i]));
+    ctx.lineTo(toX(slice_x[slice_x.length - 1]), toY(opts.zeroLine ? 0 : minY));
+    ctx.lineTo(toX(slice_x[0]), toY(opts.zeroLine ? 0 : minY));
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, pad.t, 0, H - pad.b);
+    grad.addColorStop(0, color + '30');
+    grad.addColorStop(1, color + '03');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5 * dpr;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(toX(slice_x[0]), toY(slice_y[0]));
+    for (let i = 1; i < slice_x.length; i++) ctx.lineTo(toX(slice_x[i]), toY(slice_y[i]));
+    ctx.stroke();
+
+    // Crosshair
+    if (state.mouseIdx >= 0 && state.mouseIdx < slice_x.length) {
+        const dataX = toX(slice_x[state.mouseIdx]);
+        const dataY = toY(slice_y[state.mouseIdx]);
+        // Vertical line and dot both snap to nearest data index — no offset
+        const lineX = dataX;
+
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = dpr;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.beginPath(); ctx.moveTo(lineX, pad.t); ctx.lineTo(lineX, H - pad.b); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(pad.l, dataY); ctx.lineTo(W - pad.r, dataY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+
+        // Dot at data point
+        ctx.beginPath();
+        ctx.arc(dataX, dataY, 4 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(dataX, dataY, 2.5 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.fill();
+    }
+
+    state._pad = pad; state._minX = minX; state._maxX = maxX; state._minY = minY; state._maxY = maxY;
+    state._chartW = chartW; state._dpr = dpr;
+}
+
+function drawBarChart(containerId, labels, data, opts = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const dpr = window.devicePixelRatio || 1;
+    const height = opts.height || 150;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'crh-canvas';
+    canvas.style.height = height + 'px';
+    container.appendChild(canvas);
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'crh-tooltip';
+    tooltip.innerHTML = `<div class="crh-tooltip-row"><div class="crh-tooltip-label" id="${containerId}-tt-lab">—</div><div class="crh-tooltip-val" id="${containerId}-tt-val" style="color:${opts.color || gc('--green')}">—</div></div>`;
+    container.appendChild(tooltip);
+
+    const state = { canvas, tooltip, labels, data, opts, hoverIdx: -1 };
+    crhCharts[containerId + '_bar'] = state;
+
+    function resize() {
+        const w = container.clientWidth;
+        canvas.width = w * dpr; canvas.height = height * dpr;
+        canvas.style.width = w + 'px';
+        drawBar(state, containerId);
+    }
+
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * dpr;
+        const n = state.labels.length;
+        const pad = { l: 44 * dpr, r: 12 * dpr, t: 8 * dpr, b: 28 * dpr };
+        const bw = (canvas.width - pad.l - pad.r) / n;
+        const idx = Math.floor((mx - pad.l) / bw);
+        state.hoverIdx = (idx >= 0 && idx < n) ? idx : -1;
+        drawBar(state, containerId);
+        if (state.hoverIdx >= 0) {
+            const tt = tooltip;
+            const ttlab = document.getElementById(containerId + '-tt-lab');
+            const ttval = document.getElementById(containerId + '-tt-val');
+            if (ttlab) ttlab.textContent = state.labels[state.hoverIdx];
+            if (ttval) ttval.textContent = state.data[state.hoverIdx].toLocaleString() + (opts.unit ? ' ' + opts.unit : '');
+            tt.classList.add('visible');
+            const bx = pad.l / dpr + (state.hoverIdx + 0.5) * bw / dpr;
+            tt.style.left = Math.min(bx, container.clientWidth - 140) + 'px';
+            tt.style.top = '20px';
+        } else {
+            tooltip.classList.remove('visible');
+        }
+    });
+    canvas.addEventListener('mouseleave', () => { state.hoverIdx = -1; drawBar(state, containerId); tooltip.classList.remove('visible'); });
+    new ResizeObserver(resize).observe(container);
+    resize();
+}
+
+function drawBar(state, containerId) {
+    const { canvas, labels, data, opts, hoverIdx } = state;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = { l: 44 * dpr, r: 12 * dpr, t: 8 * dpr, b: 28 * dpr };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+    ctx.clearRect(0, 0, W, H);
+
+    const maxV = Math.max(...data, 1);
+    const n = labels.length;
+    const bw = chartW / n;
+    const gap = bw * 0.12;
+    const color = opts.color || gc('--green');
+
+    ctx.font = `${9 * dpr}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = gc('--text-dim');
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+        const v = maxV * i / 4;
+        const cy = pad.t + (1 - i / 4) * chartH;
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = gc('--sidebar-border');
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.l, cy); ctx.lineTo(W - pad.r, cy); ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillText(fmtNum(v, 0), pad.l - 4, cy + 3 * dpr);
+    }
+
+    data.forEach((v, i) => {
+        const bh = (v / maxV) * chartH;
+        const bx = pad.l + i * bw + gap;
+        const by = pad.t + chartH - bh;
+        ctx.fillStyle = i === hoverIdx ? color : color + '70';
+        ctx.fillRect(bx, by, bw - gap * 2, bh);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = gc('--text-dim');
+        ctx.fillText(labels[i], pad.l + (i + 0.5) * bw, H - 6 * dpr);
+    });
+}
+
+function onMouseMove(e, state, containerId) {
+    if (!state._pad) return;
+    const rect = state.canvas.getBoundingClientRect();
+    const dpr = state._dpr || 1;
+    const mx = (e.clientX - rect.left) * dpr;
+    const { _pad: pad, xData, zoomStart, zoomEnd } = state;
+
+    const chartW = state._chartW;
+    const sliceX = xData.slice(zoomStart, zoomEnd + 1);
+    const minX = sliceX[0], maxX = sliceX[sliceX.length - 1];
+
+    // Map pixel → time → nearest data index by binary search (fixes misalignment with time gaps)
+    const frac = (mx - pad.l) / chartW;
+    const tAtMouse = minX + frac * (maxX - minX);
+    let lo = 0, hi = sliceX.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (sliceX[mid] < tAtMouse) lo = mid + 1; else hi = mid;
+    }
+    const idx = Math.max(0, Math.min(sliceX.length - 1,
+        (lo > 0 && Math.abs(sliceX[lo-1] - tAtMouse) < Math.abs(sliceX[lo] - tAtMouse)) ? lo - 1 : lo
+    ));
+
+    state.mouseIdx = idx;
+    state.mouseX = mx;
+    if (!state._rafPending) {
+        state._rafPending = true;
+        requestAnimationFrame(() => { state._rafPending = false; draw(state); });
+    }
+
+    // Update tooltip
+    const xVal = xData[zoomStart + idx];
+    const yVal = state.yData[zoomStart + idx];
+    const tt = state.tooltip;
+    const ttTime = document.getElementById(containerId + '-tt-time');
+    const ttVal = document.getElementById(containerId + '-tt-val');
+    if (ttTime) ttTime.textContent = fmtAxis(xVal);
+    if (ttVal) ttVal.textContent = fmtNum(yVal, state.opts.decimals || 0) + (state.opts.unit ? ' ' + state.opts.unit : '');
+
+    // Position tooltip
+    const bx = e.clientX - rect.left;
+    const by = e.clientY - rect.top;
+    const tw = 130;
+    const tx = bx + 16 > rect.width - tw ? bx - tw - 10 : bx + 16;
+    tt.style.left = tx + 'px';
+    tt.style.top = Math.max(0, by - 40) + 'px';
+    tt.classList.add('visible');
+
+    // Update Live HUD using global tripData sample index
+    const row = sampledData[zoomStart + idx];
+    if (row) {
+        document.getElementById('hud-time').textContent = fmtAxis(row.elapsed);
+        document.getElementById('hud-speed').textContent = row.speed;
+        document.getElementById('hud-rpm').textContent = row.rpm;
+        document.getElementById('hud-gear').textContent = row.gear === 0 ? 'N' : row.gear;
+        document.getElementById('hud-temp').textContent = row.water_temp;
+        document.getElementById('hud-lean').textContent = row.lean.toFixed(1);
+        document.getElementById('hud-accel').textContent = row.acceleration.toFixed(2);
+        const hud = document.getElementById('liveHud');
+        hud.classList.add('active');
+        hud.classList.remove('dim');
+    }
+
+    // Handle pan
+    if (state.isDragging) {
+        const dx = e.clientX - state.dragStartX;
+        const totalLen = xData.length;
+        const visLen = state.dragStartZE - state.dragStartZS + 1;
+        // Use actual chart drawing width (CSS pixels) for correct 1:1 tracking
+        const chartWidthCss = (state._chartW || state.canvas.width) / (state._dpr || 1);
+        const shift = Math.round(-dx / (chartWidthCss / visLen));
+        const ns = Math.max(0, Math.min(totalLen - visLen, state.dragStartZS + shift));
+        state.zoomStart = ns;
+        state.zoomEnd = ns + visLen - 1;
+        draw(state);
+    }
+}
+
+function onMouseLeave(e, state) {
+    state.mouseIdx = -1;
+    draw(state);
+    state.tooltip.classList.remove('visible');
+    const hud = document.getElementById('liveHud');
+    hud.classList.add('dim');
+    // reset values to dashes
+    ['hud-time','hud-speed','hud-rpm','hud-gear','hud-temp','hud-lean','hud-accel'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.textContent = '—';
+    });
+}
+
+function onWheel(e, state) {
+    const factor = e.deltaY > 0 ? 1.15 : 0.87;
+    const totalLen = state.xData.length;
+    const visLen = state.zoomEnd - state.zoomStart + 1;
+    let newLen = Math.round(visLen * factor);
+    newLen = Math.max(50, Math.min(totalLen, newLen));
+    const center = (state.zoomStart + state.zoomEnd) / 2;
+    let ns = Math.round(center - newLen / 2);
+    ns = Math.max(0, Math.min(totalLen - newLen, ns));
+    state.zoomStart = ns;
+    state.zoomEnd = ns + newLen - 1;
+    draw(state);
+}
+
+function setZoom(chartKey, seconds) {
+    const state = crhCharts['crh-' + chartKey];
+    if (!state) return;
+    if (seconds === 0) {
+        state.zoomStart = 0;
+        state.zoomEnd = state.xData.length - 1;
+    } else {
+        const totalDur = state.xData[state.xData.length - 1];
+        const frac = seconds / totalDur;
+        const visLen = Math.round(state.xData.length * Math.min(frac, 1));
+        state.zoomStart = 0;
+        state.zoomEnd = Math.max(0, visLen - 1);
+    }
+    draw(state);
+    // update active button
+    const panels = { speed: 'panel-speed', rpm: 'panel-engine' };
+    const panel = document.getElementById(panels[chartKey]);
+    if (panel) {
+        panel.querySelectorAll('.zoom-btn').forEach((b, i) => {
+            const map = [0, 300, 600, 1800];
+            b.classList.toggle('active', map[i] === seconds);
+        });
+    }
+}
+
+// ========================= HELPERS =========================
+function fmtTime(s) {
+    s = Math.round(s);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+    if (m > 0) return m + ':' + String(sec).padStart(2, '0');
+    return sec + 's';
+}
+// Compact axis tick — always mm:ss or h:mm:ss
+function fmtAxis(s) {
+    s = Math.round(s);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+}
+function fmtNum(v, dec) { return (typeof v === 'number' && !isNaN(v)) ? v.toFixed(dec) : '—'; }
+function downsample(arr, n) {
+    if (arr.length <= n) return arr;
+    const step = arr.length / n;
+    const res = [];
+    for (let i = 0; i < n; i++) res.push(arr[Math.floor(i * step)]);
+    return res;
+}
+function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371, d = v => v * Math.PI / 180;
+    const dLat = d(lat2 - lat1), dLon = d(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(d(lat1)) * Math.cos(d(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function calcDistance(rows) {
+    let d = 0;
+    for (let i = 1; i < rows.length; i++) {
+        if (!rows[i-1].lat || !rows[i].lat) continue;
+        d += haversine(rows[i-1].lat, rows[i-1].lon, rows[i].lat, rows[i].lon);
+    }
+    return d;
+}
+function statCards(items) {
+    return items.map(it => `<div class="stat-card ${it.hl ? 'highlight' : ''}"><div class="stat-label">${it.label}</div><div class="stat-value">${it.value}</div><div class="stat-unit">${it.unit}</div></div>`).join('');
+}
+
+// ========================= CSV PARSER =========================
+function parseCSV(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const meta = {};
+    let dataStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const cols = splitCSV(lines[i]);
+        if (cols[0] === 'elapsed_msec') { dataStart = i + 1; break; }
+        if (cols.length >= 2) meta[cols[0]] = cols[1];
+    }
+    const rows = [];
+    for (let i = dataStart; i < lines.length; i++) {
+        const c = splitCSV(lines[i]);
+        if (c.length < 15) continue;
+        const rawElapsed = parseFloat(c[0]);
+        // Support both milliseconds (large values) and seconds
+        const elapsed = rawElapsed > 100000 ? rawElapsed / 1000 : rawElapsed;
+        rows.push({
+            elapsed, lat: parseFloat(c[1]), lon: parseFloat(c[2]),
+            fuel: parseFloat(c[3]), water_temp: parseFloat(c[4]), boost_temp: parseFloat(c[5]),
+            rpm: parseInt(c[6]), speed: parseInt(c[7]), acceleration: parseFloat(c[8]),
+            throttle: parseFloat(c[9]), boost_pressure: parseFloat(c[10]), gear: parseInt(c[11]),
+            brake: parseFloat(c[12]), lean: parseFloat(c[13]), score: parseFloat(c[14])
+        });
+    }
+    return { meta, rows };
+}
+function splitCSV(line) {
+    const res = []; let inQ = false, cur = '';
+    for (const ch of line) {
+        if (ch === '"') inQ = !inQ;
+        else if (ch === ',' && !inQ) { res.push(cur); cur = ''; }
+        else cur += ch;
+    }
+    res.push(cur);
+    return res;
+}
+
+// ========================= FILE UPLOAD =========================
+function processFile(file) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const { meta, rows } = parseCSV(ev.target.result);
+
+            // Validate: reject empty or unrecognised files
+            if (rows.length < 2) {
+                showToast((_t.badFile||'BAD FILE') + ': ' + file.name.slice(0, 20));
+                resolve(null);
+                return;
+            }
+
+            // Sanity-check first row has numeric speed/rpm
+            const first = rows[0];
+            if (isNaN(first.speed) || isNaN(first.rpm)) {
+                showToast((_t.unknownFmt||'UNKNOWN FORMAT') + ': ' + file.name.slice(0, 20));
+                resolve(null);
+                return;
+            }
+
+            const id = addTripToLibrary(file.name, ev.target.result, rows, meta);
+            resolve(id);
+        };
+        reader.onerror = () => {
+            showToast((_t.readError||'READ ERROR') + ': ' + file.name.slice(0, 20));
+            resolve(null);
+        };
+        reader.readAsText(file);
+    });
+}
+
+async function handleFiles(files) {
+    if (!files.length) return;
+    let lastId = null;
+    let loaded = 0;
+    for (const file of files) {
+        const id = await processFile(file);
+        if (id) { lastId = id; loaded++; }
+    }
+    // Select the last successfully loaded file
+    if (lastId) selectTrip(lastId);
+    if (loaded > 0) showToast(loaded > 1 ? loaded + ' ' + (_t.tripsAdded||'TRIPS ADDED') : (_t.loaded||'LOADED'));
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    handleFiles(Array.from(e.target.files));
+    this.value = '';
+});
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.csv'));
+    handleFiles(files);
+});
+
+function onTripLoaded(filename, tripId) {
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('topBarBadge').textContent = tripData.length.toLocaleString() + ' pts';
+    document.getElementById('topBarTitle').textContent = tripMeta['Title'] || filename;
+
+    const duration = tripData.length > 0 ? tripData[tripData.length - 1].elapsed : 0;
+    const distKm = calcDistance(tripData);
+    const infoEl = document.getElementById('tripInfo');
+    infoEl.style.display = 'flex';
+    infoEl.innerHTML = `
+        <div class="trip-info-row"><span class="trip-info-label">Vehicle</span><span class="trip-info-val">${tripMeta['Vehicle Nickname'] || '—'}</span></div>
+        <div class="trip-info-row"><span class="trip-info-label">Duration</span><span class="trip-info-val">${fmtTime(duration)}</span></div>
+        <div class="trip-info-row"><span class="trip-info-label">Distance</span><span class="trip-info-val">~${distKm.toFixed(1)} km</span></div>
+        <div class="trip-info-row" id="route-row">
+            <span class="trip-info-label">Route</span>
+            <span class="trip-info-val" id="route-label" style="color:var(--text-dim);font-style:italic">detecting…</span>
+        </div>
+    `;
+
+    // Reset route label from previous trip
+    const headerRouteLabel = document.getElementById('headerRouteLabel');
+    if (headerRouteLabel) { headerRouteLabel.textContent = ''; headerRouteLabel.style.opacity = '0'; }
+
+    // Reverse geocode start and end points
+    const gpsPoints = tripData.filter(r => r.lat !== 0 && r.lon !== 0);
+    if (gpsPoints.length >= 2) {
+        const start = gpsPoints[0];
+        const end   = gpsPoints[gpsPoints.length - 1];
+        Promise.all([
+            reverseGeocode(start.lat, start.lon),
+            reverseGeocode(end.lat,   end.lon),
+        ]).then(([fromName, toName]) => {
+            const routeEl = document.getElementById('route-label');
+            if (!routeEl) return;
+            const same = fromName === toName;
+            routeEl.style.color = '';
+            routeEl.style.fontStyle = '';
+            if (same) {
+                routeEl.innerHTML = `<span style="color:var(--green)">${fromName}</span> <span style="opacity:.5">(loop)</span>`;
+            } else {
+                routeEl.innerHTML =
+                    `<span style="color:var(--green)">${fromName}</span>` +
+                    `<span style="opacity:.45;margin:0 4px">→</span>` +
+                    `<span style="color:var(--green)">${toName}</span>`;
+            }
+            // Also update header title
+            const headerTitle = document.getElementById('headerRouteLabel');
+            if (headerTitle) {
+                headerTitle.textContent = same ? fromName : `${fromName} → ${toName}`;
+                headerTitle.style.opacity = '1';
+            }
+        }).catch(() => {
+            const routeEl = document.getElementById('route-label');
+            if (routeEl) { routeEl.textContent = '—'; routeEl.style.fontStyle = ''; }
+        });
+    } else {
+        const routeEl = document.getElementById('route-label');
+        if (routeEl) { routeEl.textContent = 'No GPS data'; routeEl.style.fontStyle = ''; }
+    }
+
+    sampledData = downsample(tripData, 2000);
+    renderAllCharts();
+    showSection(activeSection);
+    const hud = document.getElementById('liveHud');
+    hud.classList.add('active', 'dim');
+}
+
+// Nominatim reverse geocoding — returns short locality name
+// ── Offline reverse geocoding — no external requests ──────────────
+// Hierarchical bbox database: Thailand provinces + major districts,
+// plus global fallback regions. Boxes: [minLat, minLon, maxLat, maxLon]
+const GEO_DB = [
+    // Thailand — provinces
+    { n:'Krabi',          b:[7.2,98.5,8.4,99.3] },
+    { n:'Phuket',         b:[7.7,98.2,8.2,98.5] },
+    { n:'Phang Nga',      b:[7.8,98.2,9.2,98.9] },
+    { n:'Trang',          b:[6.9,99.2,7.9,100.1] },
+    { n:'Surat Thani',    b:[8.4,98.6,9.8,100.2] },
+    { n:'Nakhon Si Thammarat', b:[7.8,99.8,9.0,100.7] },
+    { n:'Satun',          b:[6.5,99.5,7.0,100.5] },
+    { n:'Songkhla',       b:[6.5,100.0,7.5,101.0] },
+    { n:'Chiang Mai',     b:[17.2,97.3,20.5,99.6] },
+    { n:'Chiang Rai',     b:[19.1,99.3,20.5,100.8] },
+    { n:'Bangkok',        b:[13.4,100.3,14.0,100.9] },
+    { n:'Pattaya',        b:[12.7,100.8,13.0,101.1] },
+    { n:'Koh Samui',      b:[9.4,100.0,9.6,100.1] },
+    { n:'Koh Phi Phi',    b:[7.6,98.7,7.8,98.9] },
+    { n:'Ao Nang',        b:[7.9,98.7,8.2,98.9] },
+    { n:'Railay',         b:[7.9,98.7,8.0,98.8] },
+    { n:'Koh Lanta',      b:[7.3,99.0,7.7,99.1] },
+    { n:'Pai',            b:[19.3,98.3,19.5,98.5] },
+    { n:'Kanchanaburi',   b:[14.0,98.5,15.5,100.0] },
+    { n:'Ayutthaya',      b:[14.2,100.4,14.5,100.7] },
+    { n:'Hua Hin',        b:[12.4,99.8,12.7,100.1] },
+    { n:'Koh Tao',        b:[10.0,99.8,10.2,99.9] },
+    { n:'Koh Phangan',    b:[9.6,100.0,9.8,100.1] },
+    // Southeast Asia neighbours
+    { n:'Kuala Lumpur',   b:[3.0,101.5,3.3,101.8] },
+    { n:'Penang',         b:[5.2,100.1,5.6,100.5] },
+    { n:'Vientiane',      b:[17.8,102.4,18.1,102.8] },
+    { n:'Phnom Penh',     b:[11.4,104.7,11.7,105.0] },
+    { n:'Ho Chi Minh City',b:[10.5,106.5,11.0,107.0] },
+    { n:'Hanoi',          b:[20.8,105.6,21.2,106.0] },
+    { n:'Bali',           b:[-8.9,114.4,-8.1,115.7] },
+    // Europe
+    { n:'Moscow',         b:[55.4,37.2,56.0,37.9] },
+    { n:'Saint Petersburg',b:[59.8,30.0,60.1,30.5] },
+    // Global fallback — large regions
+    { n:'Thailand',       b:[5.5,97.3,20.5,105.6] },
+    { n:'Southeast Asia', b:[-10.0,92.0,28.0,141.0] },
+];
+
+function reverseGeocode(lat, lon) {
+    // Find smallest matching bbox
+    let best = null;
+    let bestArea = Infinity;
+    for (const r of GEO_DB) {
+        const [minLat, minLon, maxLat, maxLon] = r.b;
+        if (lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon) {
+            const area = (maxLat - minLat) * (maxLon - minLon);
+            if (area < bestArea) { bestArea = area; best = r.n; }
+        }
+    }
+    return Promise.resolve(best || `${lat.toFixed(2)}, ${lon.toFixed(2)}`);
+}
+
+// ========================= SECTION NAV =========================
+function showSection(name) {
+    activeSection = name;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === name));
+    document.querySelectorAll('.section-panel').forEach(el => el.classList.toggle('active', el.id === 'panel-' + name));
+    document.getElementById('topBarTitle').textContent =
+        document.querySelector(`[data-section="${name}"]`)?.textContent.trim() || 'Trip Analyzer';
+    // Stop playback when navigating away from map
+    if (name !== 'map' && pb.playing) {
+        pb.playing = false;
+        cancelAnimationFrame(pb.rafId);
+        pbUpdatePlayBtn();
+    }
+    if (tripData.length && name === 'map') renderMap();
+}
+
+// ========================= RENDER ALL CHARTS =========================
+function renderAllCharts() {
+    if (!tripData.length) return;
+    const rows = tripData;
+    const N = 2000;
+    const sm = sampledData;
+    const xs = sm.map(r => r.elapsed);
+
+    // Stats
+    const maxSpd = Math.max(...rows.map(r => r.speed));
+    const maxRpm = Math.max(...rows.map(r => r.rpm));
+    const avgSpd = rows.reduce((s, r) => s + r.speed, 0) / rows.length;
+    const avgRpm = rows.reduce((s, r) => s + r.rpm, 0) / rows.length;
+    const maxTemp = Math.max(...rows.map(r => r.water_temp));
+    const distKm = calcDistance(rows);
+    const duration = rows[rows.length - 1].elapsed;
+    const maxLean = Math.max(...rows.map(r => Math.abs(r.lean)));
+
+    // ---- OVERVIEW ----
+    document.getElementById('stat-overview').innerHTML = statCards([
+        { label: 'Duration',    value: fmtTime(duration), unit: '' },
+        { label: 'Distance',    value: distKm.toFixed(2), unit: 'km' },
+        { label: 'Max Speed',   value: maxSpd, unit: 'km/h' },
+        { label: 'Avg Speed',   value: avgSpd.toFixed(1), unit: 'km/h' },
+        { label: 'Max RPM',     value: maxRpm.toLocaleString(), unit: 'rpm' },
+        { label: 'Max Temp',    value: maxTemp, unit: '°C' },
+        { label: 'Max Lean',    value: maxLean.toFixed(1), unit: '°' },
+        { label: 'Data Points', value: rows.length.toLocaleString(), unit: '' },
+    ]);
+    const green = gc('--green');
+    makeCRHChart('crh-speedOverview',  xs, sm.map(r => r.speed),      { color: green, label: 'Speed', unit: 'km/h' });
+    makeCRHChart('crh-rpmOverview',    xs, sm.map(r => r.rpm),        { color: green, label: 'RPM',   unit: 'rpm' });
+    makeCRHChart('crh-tempOverview', xs, sm.map(r => r.water_temp), {
+        color: '#f5a623', label: 'Temp', unit: '°C',
+        zones: [
+            { min: 0,   max: 60,  color: '#3498db', label: 'Cold' },
+            { min: 60,  max: 85,  color: '#f1c40f', label: 'Warming' },
+            { min: 85,  max: 100, color: '#2ecc71', label: 'Normal' },
+            { min: 100, max: 999, color: '#e74c3c', label: 'Hot' },
+        ]
+    });
+    makeCRHChart('crh-gearOverview',   xs, sm.map(r => r.gear),       { color: '#7b68ee', label: 'Gear', unit: '', minY: 0, maxY: 7 });
+
+    // ---- SPEED ----
+    const movingSpeeds = rows.map(r => r.speed).filter(s => s > 0);
+    const movAvg = movingSpeeds.length ? (movingSpeeds.reduce((a,b)=>a+b,0)/movingSpeeds.length).toFixed(1) : '—';
+    document.getElementById('stat-speed').innerHTML = statCards([
+        { label: 'Max Speed',     value: maxSpd, unit: 'km/h' },
+        { label: 'Avg Speed',     value: avgSpd.toFixed(1), unit: 'km/h' },
+        { label: 'Avg (moving)',  value: movAvg, unit: 'km/h' },
+        { label: 'Time Stopped',  value: fmtTime(rows.filter(r => r.speed === 0).length * (duration / rows.length)), unit: '' },
+    ]);
+    makeCRHChart('crh-speed', xs, sm.map(r => r.speed), { color: green, label: 'Speed', unit: 'km/h' });
+    // Speed histogram
+    const histN = 12;
+    const histData = Array(histN).fill(0);
+    rows.forEach(r => { const b = Math.min(Math.floor(r.speed / (maxSpd / histN)), histN - 1); histData[b]++; });
+    const histLabels = Array.from({length: histN}, (_, i) => Math.round(i * maxSpd / histN));
+    drawBarChart('crh-speedHist', histLabels, histData, { color: green, unit: 'sec', height: 140 });
+
+    // ---- ENGINE ----
+    const idleRows = rows.filter(r => r.speed === 0 && r.rpm > 0);
+    const idleRpm = idleRows.length ? Math.round(idleRows.reduce((s,r)=>s+r.rpm,0)/idleRows.length) : 0;
+    document.getElementById('stat-engine').innerHTML = statCards([
+        { label: 'Max RPM',      value: maxRpm.toLocaleString(), unit: 'rpm' },
+        { label: 'Avg RPM',      value: Math.round(avgRpm).toLocaleString(), unit: 'rpm' },
+        { label: 'Idle RPM',     value: idleRpm.toLocaleString(), unit: 'rpm' },
+        { label: 'Max Throttle', value: Math.max(...rows.map(r => r.throttle)), unit: '%' },
+    ]);
+    makeCRHChart('crh-rpm', xs, sm.map(r => r.rpm), { color: green, label: 'RPM', unit: 'rpm' });
+    const rpmN = 12; const rpmHistData = Array(rpmN).fill(0);
+    rows.forEach(r => { const b = Math.min(Math.floor(r.rpm / (maxRpm / rpmN)), rpmN - 1); rpmHistData[b]++; });
+    const rpmHistLabels = Array.from({length: rpmN}, (_, i) => Math.round(i * maxRpm / rpmN / 100) * 100);
+    drawBarChart('crh-rpmHist', rpmHistLabels, rpmHistData, { color: green, unit: 'sec', height: 140 });
+
+    // ---- TEMPERATURE ----
+    const minTemp = Math.min(...rows.map(r => r.water_temp));
+    const avgTemp = rows.reduce((s, r) => s + r.water_temp, 0) / rows.length;
+    const warmupIdx = rows.findIndex(r => r.water_temp >= 90);
+    const warmupTime = warmupIdx >= 0
+        ? fmtTime(rows[warmupIdx].elapsed - rows[0].elapsed)
+        : '—';
+    document.getElementById('stat-temp').innerHTML = statCards([
+        { label: 'Max Temp',       value: maxTemp,            unit: '°C', hl: maxTemp > 100 },
+        { label: 'Min Temp',       value: minTemp,            unit: '°C' },
+        { label: 'Avg Temp',       value: avgTemp.toFixed(1), unit: '°C' },
+        { label: 'To Normal 90°',  value: warmupTime,         unit: 'from start' },
+    ]);
+    makeCRHChart('crh-temp', xs, sm.map(r => r.water_temp), {
+        color: '#f5a623', label: 'Temp', unit: '°C', decimals: 0,
+        zones: [
+            { min: 0,   max: 60,  color: '#3498db', label: 'Cold' },
+            { min: 60,  max: 85,  color: '#f1c40f', label: 'Warming' },
+            { min: 85,  max: 100, color: '#2ecc71', label: 'Normal' },
+            { min: 100, max: 999, color: '#e74c3c', label: 'Hot' },
+        ]
+    });
+
+    // ---- GEARS ----
+    const gearCounts = {};
+    rows.forEach(r => { gearCounts[r.gear] = (gearCounts[r.gear] || 0) + 1; });
+    const topGear = Object.entries(gearCounts).sort((a, b) => b[1] - a[1])[0];
+    const gearChanges = rows.reduce((c, r, i) => i > 0 && r.gear !== rows[i-1].gear ? c+1 : c, 0);
+    document.getElementById('stat-gears').innerHTML = statCards([
+        { label: 'Most Used Gear', value: topGear ? (topGear[0] == 0 ? 'N' : topGear[0]) : '—', unit: '' },
+        { label: 'Gear Changes',   value: gearChanges.toLocaleString(), unit: '' },
+        { label: 'Max Gear',       value: Math.max(...rows.map(r => r.gear)), unit: '' },
+    ]);
+    makeCRHChart('crh-gear', xs, sm.map(r => r.gear), { color: '#7b68ee', label: 'Gear', unit: '', minY: 0, maxY: 7 });
+    const gearNames = { 0: 'Neutral', 1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', 6: '6th' };
+    const total = rows.length;
+    document.getElementById('gearDistBars').innerHTML = Object.entries(gearCounts)
+        .sort((a,b) => a[0]-b[0])
+        .map(([g, cnt]) => {
+            const pct = (cnt / total * 100).toFixed(1);
+            return `<div class="gear-bar-row">
+                <span class="gear-bar-label">${gearNames[g] || 'G'+g}</span>
+                <div class="gear-bar-track"><div class="gear-bar-fill" style="width:${pct}%"></div></div>
+                <span class="gear-bar-pct">${pct}%</span>
+                <span class="gear-bar-time">${fmtTime(cnt)}</span>
+            </div>`;
+        }).join('');
+
+    // ---- SCATTER RPM vs SPEED ----
+    renderScatterChart(rows);
+    const leanVals = rows.map(r => r.lean);
+    const maxLeanPos = Math.max(...leanVals);
+    const maxLeanNeg = Math.min(...leanVals);
+    const avgLeanAbs = leanVals.reduce((s, v) => s + Math.abs(v), 0) / leanVals.length;
+    document.getElementById('stat-lean').innerHTML = statCards([
+        { label: 'Max Right',      value: maxLeanPos.toFixed(1), unit: '°', hl: maxLeanPos > 20 },
+        { label: 'Max Left',       value: Math.abs(maxLeanNeg).toFixed(1), unit: '°', hl: Math.abs(maxLeanNeg) > 20 },
+        { label: 'Avg Lean',       value: avgLeanAbs.toFixed(1), unit: '°' },
+        { label: 'Events >15°',    value: rows.filter(r => Math.abs(r.lean) > 15).length, unit: '' },
+    ]);
+    makeCRHChart('crh-lean', xs, sm.map(r => r.lean), { color: '#e74c3c', label: 'Lean', unit: '°', decimals: 1, zeroLine: true });
+
+    // ---- ACCELERATION ----
+    const accelVals = rows.map(r => r.acceleration);
+    const maxA = Math.max(...accelVals), minA = Math.min(...accelVals);
+    document.getElementById('stat-accel').innerHTML = statCards([
+        { label: 'Max Accel',    value: maxA.toFixed(2), unit: 'G' },
+        { label: 'Max Brake',    value: Math.abs(minA).toFixed(2), unit: 'G' },
+        { label: 'Hard Accel',   value: rows.filter(r => r.acceleration > 0.3).length, unit: '>0.3G' },
+        { label: 'Hard Brake',   value: rows.filter(r => r.acceleration < -0.3).length, unit: '>0.3G' },
+    ]);
+    makeCRHChart('crh-accel', xs, sm.map(r => r.acceleration), { color: '#e74c3c', label: 'Accel', unit: 'G', decimals: 2, zeroLine: true });
+
+    // ---- FUEL ----
+    renderFuelSection(rows, sm, xs, distKm);
+
+    // ---- INSIGHTS ----
+    renderInsights(rows, { maxSpd, distKm, duration, gearChanges, maxLeanPos, maxLeanNeg, maxA, minA, maxTemp, avgTemp });
+
+    // ---- COMBINED CHART ----
+    renderCombinedChart();
+
+    // ---- RAW TABLE ----
+    const tbody = document.getElementById('rawBody');
+    tbody.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    rows.slice(0, 300).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="mono">${r.elapsed.toFixed(1)}</td><td class="mono">${r.lat.toFixed(6)}</td><td class="mono">${r.lon.toFixed(6)}</td>
+            <td class="mono val-green">${r.speed}</td><td class="mono">${r.rpm}</td><td class="mono">${r.water_temp}</td>
+            <td class="mono val-green">${r.gear === 0 ? 'N' : r.gear}</td><td class="mono">${r.lean.toFixed(1)}</td>
+            <td class="mono">${r.acceleration.toFixed(2)}</td><td class="mono">${r.throttle}</td><td class="mono">${r.brake.toFixed(1)}</td><td class="mono">${r.fuel.toFixed(2)}</td>`;
+        frag.appendChild(tr);
+    });
+    tbody.appendChild(frag);
+
+    // MAP stats
+    document.getElementById('stat-map').innerHTML = statCards([
+        { label: 'GPS Points',  value: rows.filter(r => r.lat !== 0).length.toLocaleString(), unit: '' },
+        { label: 'Distance',    value: distKm.toFixed(2), unit: 'km' },
+        { label: 'Start Lat',   value: rows[0].lat.toFixed(5), unit: '' },
+        { label: 'Start Lon',   value: rows[0].lon.toFixed(5), unit: '' },
+    ]);
+}
+
+// ========================= INSIGHTS =========================
+function renderInsights(rows, stats) {
+    const { maxSpd, distKm, duration, gearChanges, maxLeanPos, maxLeanNeg, maxA, minA, maxTemp, avgTemp } = stats;
+    const cards = [];
+
+    // ── SPEED ──────────────────────────────────────────────────────
+    const movingRows = rows.filter(r => r.speed > 0);
+    const stopRows   = rows.filter(r => r.speed === 0);
+    const avgMoving  = movingRows.length ? (movingRows.reduce((s,r)=>s+r.speed,0)/movingRows.length).toFixed(1) : 0;
+    const stopPct    = (stopRows.length / rows.length * 100).toFixed(0);
+    const avgSpdAll  = (distKm / (duration / 3600)).toFixed(1);
+
+    // Speed buckets: 0-30 / 30-60 / 60-90 / 90-120 / 120+
+    const buckets = [0,0,0,0,0];
+    rows.forEach(r => {
+        if (r.speed < 30) buckets[0]++;
+        else if (r.speed < 60) buckets[1]++;
+        else if (r.speed < 90) buckets[2]++;
+        else if (r.speed < 120) buckets[3]++;
+        else buckets[4]++;
+    });
+    const total = rows.length;
+    const bucketLines = ['0–30','30–60','60–90','90–120','120+'].map((label,i) =>
+        `${label} km/h: ${(buckets[i]/total*100).toFixed(0)}%`).join(' · ');
+
+    cards.push({
+        tag: maxSpd > 120 ? 'WARN' : 'INFO',
+        title: 'Speed Profile',
+        value: maxSpd + ' km/h',
+        sublabel: 'Peak speed',
+        rows: [
+            { label: 'Avg (moving)', val: avgMoving + ' km/h' },
+            { label: 'Avg incl. stops', val: avgSpdAll + ' km/h' },
+            { label: 'Time stopped', val: stopPct + '% · ' + fmtTime(stopRows.length * (duration / rows.length)) },
+            { label: 'Distribution', val: bucketLines },
+        ]
+    });
+
+    // ── GEAR USAGE ─────────────────────────────────────────────────
+    const shiftsPerMin = (gearChanges / (duration / 60)).toFixed(1);
+    const gearMap = {};
+    rows.forEach(r => { gearMap[r.gear] = (gearMap[r.gear]||0)+1; });
+    const dominantGear = Object.entries(gearMap).sort((a,b)=>b[1]-a[1])[0];
+    const dominantGearName = dominantGear[0] === '0' ? 'Neutral' : 'Gear ' + dominantGear[0];
+    const dominantPct = (dominantGear[1]/total*100).toFixed(0);
+    const neutralTime = gearMap[0] ? fmtTime(gearMap[0]) : '0s';
+
+    cards.push({
+        tag: 'INFO',
+        title: 'Transmission',
+        value: shiftsPerMin,
+        sublabel: 'shifts / min',
+        rows: [
+            { label: 'Total shifts', val: gearChanges.toLocaleString() },
+            { label: 'Dominant gear', val: dominantGearName + ' · ' + dominantPct + '%' },
+            { label: 'Time in neutral', val: neutralTime },
+        ]
+    });
+
+    // ── LEAN ANGLES ────────────────────────────────────────────────
+    const maxAbsLean = Math.max(maxLeanPos, Math.abs(maxLeanNeg));
+    const leanVals = rows.map(r => Math.abs(r.lean));
+    const avgLean  = (leanVals.reduce((a,b)=>a+b,0)/leanVals.length).toFixed(1);
+    const over15   = rows.filter(r => Math.abs(r.lean) > 15).length;
+    const over30   = rows.filter(r => Math.abs(r.lean) > 30).length;
+    const over45   = rows.filter(r => Math.abs(r.lean) > 45).length;
+    const leanTag  = maxAbsLean > 45 ? 'WARN' : maxAbsLean > 30 ? 'CAUTION' : 'OK';
+
+    cards.push({
+        tag: leanTag,
+        title: 'Lean Angles',
+        value: maxAbsLean.toFixed(1) + '°',
+        sublabel: 'Max lean (both sides)',
+        rows: [
+            { label: 'Right / Left max', val: maxLeanPos.toFixed(1) + '° / ' + Math.abs(maxLeanNeg).toFixed(1) + '°' },
+            { label: 'Average lean', val: avgLean + '°' },
+            { label: 'Events >15° / >30° / >45°', val: over15 + ' / ' + over30 + ' / ' + over45 },
+        ]
+    });
+
+    // ── G-FORCES ───────────────────────────────────────────────────
+    const hardAccel  = rows.filter(r => r.acceleration > 0.3).length;
+    const hardBrake  = rows.filter(r => r.acceleration < -0.3).length;
+    const vHardBrake = rows.filter(r => r.acceleration < -0.5).length;
+    const accelTag   = vHardBrake > 10 ? 'WARN' : hardBrake > 30 ? 'CAUTION' : 'OK';
+    // Estimate braking distance at max decel (v²/2a, rough)
+    const peakDecelG  = Math.abs(minA);
+    const peakDecelMs = peakDecelG * 9.81;
+    const brakeDist60 = ((16.67*16.67)/(2*peakDecelMs)).toFixed(0); // from 60km/h
+
+    cards.push({
+        tag: accelTag,
+        title: 'Acceleration / Braking',
+        value: peakDecelG.toFixed(2) + 'G',
+        sublabel: 'Peak deceleration',
+        rows: [
+            { label: 'Peak acceleration', val: maxA.toFixed(2) + ' G' },
+            { label: 'Hard accel (>0.3G)', val: hardAccel + ' events' },
+            { label: 'Hard brake (>0.3G)', val: hardBrake + ' events · ' + vHardBrake + ' severe (>0.5G)' },
+            { label: 'Est. braking dist from 60', val: brakeDist60 + ' m' },
+        ]
+    });
+
+    // ── ENGINE & THROTTLE ──────────────────────────────────────────
+    const throttleVals = rows.map(r => r.throttle);
+    const avgThrottle  = (throttleVals.reduce((a,b)=>a+b,0)/throttleVals.length).toFixed(0);
+    const wotEvents    = rows.filter(r => r.throttle > 90).length;
+    const rpmVals      = rows.map(r => r.rpm).filter(r => r > 0);
+    const avgRpm       = rpmVals.length ? Math.round(rpmVals.reduce((a,b)=>a+b,0)/rpmVals.length) : 0;
+    const rpmOver7k    = rows.filter(r => r.rpm > 7000).length;
+
+    cards.push({
+        tag: 'INFO',
+        title: 'Engine & Throttle',
+        value: avgThrottle + '%',
+        sublabel: 'Avg throttle opening',
+        rows: [
+            { label: 'WOT events (>90%)', val: wotEvents + ' · ' + (wotEvents/total*100).toFixed(1) + '% of time' },
+            { label: 'Avg RPM', val: avgRpm.toLocaleString() + ' rpm' },
+            { label: 'Time >7000 rpm', val: fmtTime(rpmOver7k) + ' · ' + (rpmOver7k/total*100).toFixed(1) + '%' },
+        ]
+    });
+
+    // ── THERMAL ────────────────────────────────────────────────────
+    const tempRows     = rows.filter(r => r.water_temp > 0);
+    const minTemp      = tempRows.length ? Math.min(...tempRows.map(r=>r.water_temp)) : 0;
+    const overTemp     = rows.filter(r => r.water_temp > 100).length;
+    const tempTag      = maxTemp > 110 ? 'WARN' : maxTemp > 100 ? 'CAUTION' : 'OK';
+    const warmupIdx    = rows.findIndex(r => r.water_temp >= 80);
+    const warmupTime   = warmupIdx >= 0 ? fmtTime(rows[warmupIdx].elapsed) : '—';
+
+    cards.push({
+        tag: tempTag,
+        title: 'Coolant Temperature',
+        value: maxTemp + '°C',
+        sublabel: 'Peak coolant temp',
+        rows: [
+            { label: 'Average / Min', val: avgTemp.toFixed(0) + '°C / ' + minTemp + '°C' },
+            { label: 'Time >100°C', val: fmtTime(overTemp) },
+            { label: 'Warm-up to 80°C', val: warmupTime },
+        ]
+    });
+
+    // ── RIDING STYLE SCORE ─────────────────────────────────────────
+    // Simple composite 0-100
+    let score = 100;
+    if (maxAbsLean > 45) score -= 15; else if (maxAbsLean > 30) score -= 7;
+    if (vHardBrake > 10) score -= 15; else if (hardBrake > 30) score -= 7;
+    if (wotEvents / total > 0.05) score -= 10;
+    if (maxTemp > 105) score -= 10;
+    if (parseFloat(stopPct) > 30) score -= 5;
+    score = Math.max(0, score);
+    const scoreLabel = score >= 85 ? 'SMOOTH' : score >= 65 ? 'MODERATE' : 'AGGRESSIVE';
+    const scoreColor = score >= 85 ? 'var(--green)' : score >= 65 ? '#f5a623' : '#e74c3c';
+
+    cards.push({
+        tag: scoreLabel,
+        tagColor: scoreColor,
+        title: 'Riding Style Index',
+        value: score,
+        sublabel: '/ 100',
+        rows: [
+            { label: 'Lean angle factor', val: maxAbsLean > 45 ? '−15' : maxAbsLean > 30 ? '−7' : 'OK' },
+            { label: 'Braking factor', val: vHardBrake > 10 ? '−15' : hardBrake > 30 ? '−7' : 'OK' },
+            { label: 'Throttle factor', val: wotEvents/total > 0.05 ? '−10' : 'OK' },
+            { label: 'Thermal factor', val: maxTemp > 105 ? '−10' : 'OK' },
+        ]
+    });
+
+    // ── FUEL EFFICIENCY ────────────────────────────────────────────
+    const fuelReadings = rows.map(r => r.fuel).filter(f => f > 0 && f < 50);
+    if (fuelReadings.length > 10) {
+        const avgInstFuel = (fuelReadings.reduce((a,b)=>a+b,0)/fuelReadings.length).toFixed(1);
+        const highFuel    = rows.filter(r => r.fuel > 15).length;
+        cards.push({
+            tag: 'INFO',
+            title: 'Fuel Consumption',
+            value: avgInstFuel,
+            sublabel: 'L/100km avg',
+            rows: [
+                { label: 'High consumption events (>15)', val: highFuel + ' sec' },
+                { label: 'Est. trip consumption', val: distKm > 0 ? (distKm * parseFloat(avgInstFuel) / 100).toFixed(1) + ' L' : '—' },
+            ]
+        });
+    }
+
+    // ── RENDER ─────────────────────────────────────────────────────
+    const tagColors = { WARN:'#e74c3c', CAUTION:'#f5a623', OK:'var(--green)', INFO:'var(--text-dim)', SMOOTH:'var(--green)', MODERATE:'#f5a623', AGGRESSIVE:'#e74c3c' };
+
+    document.getElementById('insightGrid').innerHTML = cards.map(card => {
+        const tc = card.tagColor || tagColors[card.tag] || 'var(--text-dim)';
+        const rowsHtml = card.rows.map(r =>
+            `<div class="ins-row"><span class="ins-row-label">${r.label}</span><span class="ins-row-val">${r.val}</span></div>`
+        ).join('');
+        return `<div class="insight-card">
+            <div class="ins-header">
+                <span class="ins-tag" style="color:${tc};border-color:${tc}">${card.tag}</span>
+                <span class="ins-title">${card.title}</span>
+            </div>
+            <div class="ins-hero"><span class="ins-value">${card.value}</span><span class="ins-sublabel">${card.sublabel}</span></div>
+            <div class="ins-rows">${rowsHtml}</div>
+        </div>`;
+    }).join('');
+}
+
+// ========================= SCATTER RPM vs SPEED =========================
+const GEAR_COLORS = {
+    0: '#555566',
+    1: '#e74c3c',
+    2: '#e67e22',
+    3: '#f1c40f',
+    4: '#2ecc71',
+    5: '#3498db',
+    6: '#9b59b6',
+};
+const GEAR_NAMES = { 0:'N', 1:'1st', 2:'2nd', 3:'3rd', 4:'4th', 5:'5th', 6:'6th' };
+
+let scatterState = null;
+
+function renderScatterChart(rows) {
+    // Only moving points with known gear
+    const pts = rows.filter(r => r.speed > 0 && r.rpm > 100 && r.gear >= 0);
+    if (!pts.length) return;
+
+    // Stats
+    const gearsPresent = [...new Set(pts.map(r => r.gear))].filter(g => g > 0).sort((a,b)=>a-b);
+    const totalPts = pts.length;
+
+    // Per-gear efficiency zone: median RPM range where that gear is most used
+    const gearStats = {};
+    gearsPresent.forEach(g => {
+        const gpts = pts.filter(r => r.gear === g);
+        const rpms = gpts.map(r => r.rpm).sort((a,b)=>a-b);
+        const spds = gpts.map(r => r.speed).sort((a,b)=>a-b);
+        const p10 = rpms[Math.floor(rpms.length * 0.1)];
+        const p90 = rpms[Math.floor(rpms.length * 0.9)];
+        const medRpm = rpms[Math.floor(rpms.length * 0.5)];
+        const medSpd = spds[Math.floor(spds.length * 0.5)];
+        gearStats[g] = { count: gpts.length, p10, p90, medRpm, medSpd,
+            avgRpm: Math.round(gpts.reduce((s,r)=>s+r.rpm,0)/gpts.length),
+            maxSpd: Math.max(...gpts.map(r=>r.speed)) };
+    });
+
+    // Stat cards
+    const dominantGear = gearsPresent.reduce((a,b) => (gearStats[a]?.count||0) > (gearStats[b]?.count||0) ? a : b, gearsPresent[0]);
+    document.getElementById('stat-scatter').innerHTML = statCards(
+        gearsPresent.map(g => ({
+            label: `Gear ${g} avg RPM`,
+            value: gearStats[g].avgRpm.toLocaleString(),
+            unit: 'rpm'
+        }))
+    );
+
+    // Build legend
+    const legendEl = document.getElementById('scatter-legend');
+    legendEl.innerHTML = '';
+    gearsPresent.forEach(g => {
+        const col = GEAR_COLORS[g] || '#aaa';
+        const btn = document.createElement('button');
+        btn.className = 'cleg-btn active';
+        btn.dataset.gear = g;
+        btn.style.borderColor = col + '80';
+        btn.innerHTML = `<span class="cleg-dot" style="background:${col}"></span>${GEAR_NAMES[g]}
+            <span style="opacity:.45;font-size:9px;margin-left:3px">${gearStats[g].count}pts</span>`;
+        btn.onclick = () => {
+            const hidden = scatterState?.hiddenGears || new Set();
+            if (hidden.has(g)) hidden.delete(g); else hidden.add(g);
+            btn.classList.toggle('active', !hidden.has(g));
+            btn.style.borderColor = hidden.has(g) ? '' : col + '80';
+            if (scatterState) { scatterState.hiddenGears = hidden; drawScatter(); }
+        };
+        legendEl.appendChild(btn);
+    });
+
+    // Canvas setup
+    const container = document.getElementById('crh-scatter');
+    container.innerHTML = '';
+    const dpr = window.devicePixelRatio || 1;
+    const HEIGHT = 340;
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = HEIGHT + 'px';
+    canvas.style.display = 'block';
+    container.appendChild(canvas);
+
+    // Tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'crh-tooltip';
+    tooltip.style.minWidth = '150px';
+    container.appendChild(tooltip);
+
+    scatterState = {
+        canvas, tooltip, pts, gearsPresent, gearStats,
+        hiddenGears: new Set(),
+        hoverPt: null, dpr, HEIGHT,
+    };
+
+    const resizeObs = new ResizeObserver(() => drawScatter());
+    resizeObs.observe(container);
+
+    canvas.addEventListener('mousemove', onScatterMouseMove);
+    canvas.addEventListener('mouseleave', () => {
+        scatterState.hoverPt = null;
+        tooltip.classList.remove('visible');
+        drawScatter();
+    });
+
+    drawScatter();
+}
+
+function drawScatter() {
+    const st = scatterState;
+    if (!st) return;
+    const { canvas, pts, gearsPresent, gearStats, hiddenGears, dpr, HEIGHT } = st;
+    const container = canvas.parentElement;
+    const W = container.clientWidth * dpr;
+    const H = HEIGHT * dpr;
+    canvas.width = W; canvas.height = H;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    const pad = { l: 52*dpr, r: 20*dpr, t: 16*dpr, b: 38*dpr };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+
+    const allSpd = pts.map(r => r.speed);
+    const allRpm = pts.map(r => r.rpm);
+    const minX = 0, maxX = Math.ceil(Math.max(...allSpd) / 10) * 10 + 5;
+    const minY = 0, maxY = Math.ceil(Math.max(...allRpm) / 500) * 500 + 200;
+
+    const toX = v => pad.l + (v - minX) / (maxX - minX) * chartW;
+    const toY = v => pad.t + chartH - (v - minY) / (maxY - minY) * chartH;
+
+    // Grid
+    ctx.strokeStyle = gc('--sidebar-border');
+    ctx.lineWidth = dpr;
+    ctx.setLineDash([3*dpr, 5*dpr]);
+    ctx.globalAlpha = 0.4;
+    const xTicks = 8, yTicks = 6;
+    for (let i = 0; i <= xTicks; i++) {
+        const xv = minX + (maxX - minX) * i / xTicks;
+        const cx = toX(xv);
+        ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, pad.t + chartH); ctx.stroke();
+    }
+    for (let i = 0; i <= yTicks; i++) {
+        const yv = minY + (maxY - minY) * i / yTicks;
+        const cy = toY(yv);
+        ctx.beginPath(); ctx.moveTo(pad.l, cy); ctx.lineTo(pad.l + chartW, cy); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    // Axes labels
+    ctx.font = `${9*dpr}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = gc('--text-dim');
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= xTicks; i++) {
+        const xv = Math.round(minX + (maxX - minX) * i / xTicks);
+        ctx.fillText(xv, toX(xv), H - 10*dpr);
+    }
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= yTicks; i++) {
+        const yv = Math.round(minY + (maxY - minY) * i / yTicks);
+        ctx.fillText(yv >= 1000 ? (yv/1000).toFixed(1)+'k' : yv, pad.l - 6*dpr, toY(yv) + 3*dpr);
+    }
+
+    // Axis titles
+    ctx.font = `bold ${9*dpr}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = gc('--text-dim');
+    ctx.globalAlpha = 0.6;
+    ctx.textAlign = 'center';
+    ctx.fillText('SPEED  km/h', pad.l + chartW/2, H - 1*dpr);
+    ctx.save();
+    ctx.translate(11*dpr, pad.t + chartH/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText('RPM', 0, 0);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    // Draw efficiency band per gear (soft filled lane)
+    gearsPresent.forEach(g => {
+        if (hiddenGears.has(g)) return;
+        const gs = gearStats[g];
+        const col = GEAR_COLORS[g] || '#aaa';
+        // vertical band: speed range p10–p90 of this gear
+        const gpts = pts.filter(r => r.gear === g);
+        const spds = gpts.map(r=>r.speed).sort((a,b)=>a-b);
+        const x0 = toX(spds[Math.floor(spds.length*0.1)]);
+        const x1 = toX(spds[Math.floor(spds.length*0.9)]);
+        const y0 = toY(gs.p10);
+        const y1 = toY(gs.p90);
+        ctx.save();
+        ctx.globalAlpha = 0.06;
+        ctx.fillStyle = col;
+        ctx.fillRect(x0, y1, x1 - x0, y0 - y1);
+        ctx.restore();
+    });
+
+    // Draw dots — subsample to max 1500 per gear for perf
+    gearsPresent.forEach(g => {
+        if (hiddenGears.has(g)) return;
+        const col = GEAR_COLORS[g] || '#aaa';
+        const gpts = pts.filter(r => r.gear === g);
+        const sample = gpts.length > 1500 ? downsample(gpts, 1500) : gpts;
+        const r = 2.2 * dpr;
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = col;
+        sample.forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(toX(pt.speed), toY(pt.rpm), r, 0, Math.PI*2);
+            ctx.fill();
+        });
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw median crosshair per gear
+    gearsPresent.forEach(g => {
+        if (hiddenGears.has(g)) return;
+        const gs = gearStats[g];
+        const col = GEAR_COLORS[g] || '#aaa';
+        const cx = toX(gs.medSpd), cy = toY(gs.medRpm);
+        // outer ring
+        ctx.strokeStyle = col; ctx.lineWidth = 1.5*dpr;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath(); ctx.arc(cx, cy, 7*dpr, 0, Math.PI*2); ctx.stroke();
+        // cross
+        ctx.lineWidth = dpr; ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.moveTo(cx-10*dpr, cy); ctx.lineTo(cx+10*dpr, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy-10*dpr); ctx.lineTo(cx, cy+10*dpr); ctx.stroke();
+        // label
+        ctx.globalAlpha = 1;
+        ctx.font = `bold ${10*dpr}px "IBM Plex Mono", monospace`;
+        ctx.fillStyle = col;
+        ctx.textAlign = cx > W*0.75 ? 'right' : 'left';
+        const lx = cx > W*0.75 ? cx - 14*dpr : cx + 14*dpr;
+        ctx.fillText(GEAR_NAMES[g], lx, cy - 3*dpr);
+        ctx.font = `${8.5*dpr}px "IBM Plex Mono", monospace`;
+        ctx.globalAlpha = 0.65;
+        ctx.fillText(`${gs.medRpm}rpm`, lx, cy + 9*dpr);
+        ctx.globalAlpha = 1;
+    });
+
+    // Hover dot highlight
+    if (st.hoverPt) {
+        const { pt } = st.hoverPt;
+        const col = GEAR_COLORS[pt.gear] || '#aaa';
+        ctx.strokeStyle = col; ctx.lineWidth = 1.5*dpr;
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(toX(pt.speed), toY(pt.rpm), 5*dpr, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = col; ctx.globalAlpha = 0.3;
+        ctx.beginPath(); ctx.arc(toX(pt.speed), toY(pt.rpm), 5*dpr, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+
+    // Save for hit-test
+    st._toX = toX; st._toY = toY;
+    st._minX = minX; st._maxX = maxX; st._minY = minY; st._maxY = maxY;
+    st._chartW = chartW; st._chartH = chartH; st._pad = pad;
+    st._W = W; st._H = H;
+}
+
+function onScatterMouseMove(e) {
+    const st = scatterState;
+    if (!st || !st._pad) return;
+    const rect = st.canvas.getBoundingClientRect();
+    const dpr = st.dpr;
+    const mx = (e.clientX - rect.left) * dpr;
+    const my = (e.clientY - rect.top) * dpr;
+    const { _pad: pad, _toX, _toY, _minX, _maxX, _minY, _maxY, _chartW, _chartH } = st;
+
+    // Map pixel → data coords
+    const dataX = _minX + (mx - pad.l) / _chartW * (_maxX - _minX);
+    const dataY = _minY + (1 - (my - pad.t) / _chartH) * (_maxY - _minY);
+
+    // Find nearest visible point (normalise axes to 0-1 for distance)
+    const xRange = _maxX - _minX, yRange = _maxY - _minY;
+    let best = null, bestD = Infinity;
+    const sample = st.pts.length > 3000 ? downsample(st.pts, 3000) : st.pts;
+    sample.forEach(pt => {
+        if (st.hiddenGears.has(pt.gear)) return;
+        const dx = (pt.speed - dataX) / xRange;
+        const dy = (pt.rpm   - dataY) / yRange;
+        const d = dx*dx + dy*dy;
+        if (d < bestD) { bestD = d; best = pt; }
+    });
+
+    // Only show tooltip if reasonably close (within ~3% of axis range)
+    if (best && bestD < 0.0009) {
+        st.hoverPt = { pt: best };
+        const col = GEAR_COLORS[best.gear] || '#aaa';
+        const bx = e.clientX - rect.left;
+        const by = e.clientY - rect.top;
+        const tw = 155;
+        st.tooltip.innerHTML = `
+            <div class="crh-tooltip-time" style="color:${col}">${GEAR_NAMES[best.gear]} Gear</div>
+            <div class="crh-tooltip-row"><div class="crh-tooltip-label">Speed</div><div class="crh-tooltip-val" style="color:${col}">${best.speed} <span style="font-size:10px;opacity:.6">km/h</span></div></div>
+            <div class="crh-tooltip-row"><div class="crh-tooltip-label">RPM</div><div class="crh-tooltip-val" style="color:${col}">${best.rpm.toLocaleString()}</div></div>
+            <div class="crh-tooltip-row"><div class="crh-tooltip-label">Time</div><div class="crh-tooltip-val" style="font-size:12px;color:${col}">${fmtAxis(best.elapsed)}</div></div>`;
+        st.tooltip.style.left = (bx + 16 > rect.width - tw ? bx - tw - 10 : bx + 16) + 'px';
+        st.tooltip.style.top = Math.max(0, by - 50) + 'px';
+        st.tooltip.classList.add('visible');
+    } else {
+        st.hoverPt = null;
+        st.tooltip.classList.remove('visible');
+    }
+    drawScatter();
+}
+
+// ========================= FUEL SECTION =========================
+function renderFuelSection(rows, sm, xs, distKm) {
+    const fuelVals = rows.map(r => r.fuel).filter(f => f > 0 && f < 50);
+    const hasRealFuel = fuelVals.length > rows.length * 0.1; // at least 10% real readings
+
+    const disclaimer = document.getElementById('fuel-disclaimer');
+    const estBreakdown = document.getElementById('fuel-est-breakdown');
+    const chartTitle = document.getElementById('fuel-chart-title');
+
+    if (hasRealFuel) {
+        // ── Real sensor data ──────────────────────────────────────
+        disclaimer.style.display = 'none';
+        estBreakdown.style.display = 'none';
+        chartTitle.textContent = 'Instant Fuel Consumption (L/100km)';
+
+        const avgFuel = fuelVals.reduce((a,b)=>a+b,0) / fuelVals.length;
+        const maxFuel = Math.max(...fuelVals);
+        const movingFuel = rows.filter(r => r.speed > 0 && r.fuel > 0 && r.fuel < 50);
+        const avgMovingFuel = movingFuel.length
+            ? movingFuel.reduce((a,b)=>a+b.fuel,0)/movingFuel.length : 0;
+        // Estimate total litres: avg L/100km * distance
+        const estTotal = (avgMovingFuel * distKm / 100).toFixed(2);
+
+        document.getElementById('stat-fuel').innerHTML = statCards([
+            { label: 'Avg Instant',   value: avgFuel.toFixed(2),       unit: 'L/100km' },
+            { label: 'Avg (moving)',  value: avgMovingFuel.toFixed(2),  unit: 'L/100km' },
+            { label: 'Max Instant',   value: maxFuel.toFixed(2),        unit: 'L/100km' },
+            { label: 'Est. Total',    value: estTotal,                  unit: 'L' },
+        ]);
+        makeCRHChart('crh-fuel', xs, sm.map(r => r.fuel),
+            { color: '#f39c12', label: 'Fuel', unit: 'L/100km', decimals: 2 });
+
+    } else {
+        // ── Estimated from RPM + speed ────────────────────────────
+        disclaimer.style.display = 'block';
+        estBreakdown.style.display = 'block';
+        chartTitle.textContent = 'Estimated Fuel Consumption (L/100km) — RPM model';
+
+        // Model: instant L/100km based on RPM load and speed
+        // Calibrated for ~500cc parallel twin (KLE500, CB500, etc.)
+        // Base: idle burn ~0.4 L/h; WOT at max rpm: ~6 L/h
+        // L/100km = (litres_per_hour) / speed_kmh * 100
+        // litres_per_hour = BASE + LOAD_COEFF * rpmNorm² * (1 + AERO * spdNorm²)
+        const maxRpmAll = Math.max(...rows.map(r => r.rpm));
+        const BASE_LPH  = 0.45;   // idle fuel flow L/h
+        const MAX_LPH   = 6.2;    // full-throttle fuel flow L/h
+        const AERO_K    = 0.35;   // aero drag contribution at top speed
+
+        function estimateInstant(row) {
+            if (row.speed < 2) return 0; // stopped — no useful L/100km
+            const rpmNorm = Math.min(row.rpm / (maxRpmAll || 7000), 1);
+            const lph = BASE_LPH + (MAX_LPH - BASE_LPH) * (rpmNorm * rpmNorm);
+            return lph / row.speed * 100; // L/100km
+        }
+
+        const estSeries = rows.map(estimateInstant);
+        const smEst = sm.map(r => estimateInstant(r));
+
+        // Moving average to smooth the estimated line (5-point)
+        const smooth = arr => arr.map((v, i, a) => {
+            if (v === 0) return 0;
+            const win = a.slice(Math.max(0,i-2), Math.min(a.length,i+3)).filter(x=>x>0);
+            return win.length ? win.reduce((s,x)=>s+x,0)/win.length : 0;
+        });
+        const smEstSmooth = smooth(smEst);
+
+        // Overall stats from moving rows only
+        const movingEst = estSeries.filter(v => v > 0);
+        const avgEst = movingEst.reduce((a,b)=>a+b,0) / (movingEst.length || 1);
+        const maxEst = Math.max(...movingEst);
+        const estTotal = (avgEst * distKm / 100).toFixed(2);
+        const estTotalRange = `${(avgEst*0.8*distKm/100).toFixed(1)}–${(avgEst*1.2*distKm/100).toFixed(1)}`;
+
+        document.getElementById('stat-fuel').innerHTML = statCards([
+            { label: 'Est. Avg',   value: avgEst.toFixed(1),  unit: 'L/100km' },
+            { label: 'Est. Total', value: estTotal,            unit: 'L  (±20%)' },
+            { label: 'Est. Range', value: estTotalRange,       unit: 'L' },
+            { label: 'Est. Peak',  value: maxEst.toFixed(1),   unit: 'L/100km' },
+        ]);
+
+        makeCRHChart('crh-fuel', xs, smEstSmooth,
+            { color: '#f39c12', label: 'Est. Fuel', unit: 'L/100km', decimals: 1 });
+
+        // Speed zone breakdown
+        const zones = [
+            { label: 'City  <50',    min: 2,   max: 50  },
+            { label: 'Road  50–90',  min: 50,  max: 90  },
+            { label: 'Fast  90–120', min: 90,  max: 120 },
+            { label: 'High  >120',   min: 120, max: 999 },
+        ];
+        const zoneData = zones.map(z => {
+            const zrows = rows.filter(r => r.speed >= z.min && r.speed < z.max);
+            if (!zrows.length) return { ...z, avg: 0, dist: 0, pct: 0 };
+            const avgest = zrows.map(estimateInstant).filter(v=>v>0);
+            const avg = avgest.length ? avgest.reduce((a,b)=>a+b,0)/avgest.length : 0;
+            const dist = calcDistance(zrows);
+            return { ...z, avg, dist, pct: zrows.length / rows.length * 100 };
+        }).filter(z => z.pct > 0.5);
+
+        const maxAvg = Math.max(...zoneData.map(z => z.avg));
+        document.getElementById('fuel-zone-bars').innerHTML = zoneData.map(z => {
+            const barW = (z.avg / maxAvg * 100).toFixed(1);
+            return `<div class="gear-bar-row">
+                <span class="gear-bar-label" style="min-width:80px;font-size:10px">${z.label}</span>
+                <div class="gear-bar-track">
+                    <div class="gear-bar-fill" style="width:${barW}%;background:#f39c12;"></div>
+                </div>
+                <span class="gear-bar-pct" style="color:#f39c12">${z.avg.toFixed(1)} L/100</span>
+                <span class="gear-bar-time">${z.dist.toFixed(1)} km</span>
+            </div>`;
+        }).join('');
+    }
+}
+
+// ========================= MAP =========================
+function renderMap() {
+    if (!tripData.length) return;
+    const gpsPoints = tripData.filter(r => r.lat !== 0 && r.lon !== 0);
+    if (!gpsPoints.length) { document.getElementById('mapPlaceholder').style.display = 'flex'; return; }
+    document.getElementById('mapPlaceholder').style.display = 'none';
+
+    if (!document.getElementById('leafletCSS')) {
+        const css = document.createElement('link');
+        css.id = 'leafletCSS'; css.rel = 'stylesheet';
+        css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+        document.head.appendChild(css);
+    }
+    if (!window.L) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+        script.onload = () => initLeaflet(gpsPoints);
+        document.head.appendChild(script);
+    } else {
+        initLeaflet(gpsPoints);
+    }
+}
+
+function initLeaflet(gpsPoints) {
+    const mapDiv = document.getElementById('googleMap');
+    if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+    mapDiv.style.width = '100%'; mapDiv.style.height = '100%';
+
+    const center = [gpsPoints[0].lat, gpsPoints[0].lon];
+    mapInstance = L.map(mapDiv, { zoomControl: true }).setView(center, 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19
+    }).addTo(mapInstance);
+
+    const pts = downsample(gpsPoints, 2000);
+    const maxSpd = Math.max(...pts.map(p => p.speed));
+    for (let i = 1; i < pts.length; i++) {
+        const norm = pts[i].speed / (maxSpd || 1);
+        L.polyline([[pts[i-1].lat, pts[i-1].lon], [pts[i].lat, pts[i].lon]], {
+            color: speedColor(norm), weight: 3, opacity: 0.9
+        }).addTo(mapInstance);
+    }
+
+    const mkIcon = (c, glow) => L.divIcon({ html: `<div style="background:${c};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${glow}"></div>`, className: '', iconAnchor: [6, 6] });
+    L.marker([gpsPoints[0].lat, gpsPoints[0].lon], { icon: mkIcon('#00d068', '#00d068') }).addTo(mapInstance).bindPopup('🏁 Start');
+    L.marker([gpsPoints[gpsPoints.length-1].lat, gpsPoints[gpsPoints.length-1].lon], { icon: mkIcon('#e74c3c', '#e74c3c') }).addTo(mapInstance).bindPopup('🏁 End');
+    mapInstance.fitBounds(pts.map(p => [p.lat, p.lon]), { padding: [20, 20] });
+
+    // ── Stop clusters ──────────────────────────────────────────────
+    renderStopClusters(tripData);
+
+    // Init playback engine
+    pb.marker = null; pb.trail = null;
+    pbInit();
+}
+
+// Detect stops (speed=0, min 3 consecutive rows) → cluster nearby ones → draw markers
+function renderStopClusters(rows) {
+    if (!mapInstance) return;
+
+    // 1. Collect raw stop segments
+    const segments = [];
+    let i = 0;
+    while (i < rows.length) {
+        if (rows[i].speed === 0) {
+            let j = i;
+            while (j < rows.length && rows[j].speed === 0) j++;
+            const dur = j - i; // rows ≈ 1s each
+            if (dur >= 3) {
+                // median lat/lon of segment
+                const mid = rows[Math.floor((i + j) / 2)];
+                if (mid.lat !== 0 && mid.lon !== 0) {
+                    segments.push({ lat: mid.lat, lon: mid.lon, dur,
+                        startElapsed: rows[i].elapsed, endElapsed: rows[j-1].elapsed });
+                }
+            }
+            i = j;
+        } else { i++; }
+    }
+
+    // 2. Cluster segments within ~80m of each other (greedy)
+    const R = 80; // metres
+    const used = new Array(segments.length).fill(false);
+    const clusters = [];
+    function dist(a, b) {
+        const dlat = (a.lat - b.lat) * 111320;
+        const dlon = (a.lon - b.lon) * 111320 * Math.cos(a.lat * Math.PI / 180);
+        return Math.sqrt(dlat*dlat + dlon*dlon);
+    }
+    for (let a = 0; a < segments.length; a++) {
+        if (used[a]) continue;
+        const group = [a];
+        for (let b = a + 1; b < segments.length; b++) {
+            if (!used[b] && dist(segments[a], segments[b]) < R) { group.push(b); used[b] = true; }
+        }
+        used[a] = true;
+        const totalDur = group.reduce((s, idx) => s + segments[idx].dur, 0);
+        const lat = group.reduce((s, idx) => s + segments[idx].lat, 0) / group.length;
+        const lon = group.reduce((s, idx) => s + segments[idx].lon, 0) / group.length;
+        const visits = group.length;
+        clusters.push({ lat, lon, totalDur, visits,
+            startElapsed: segments[group[0]].startElapsed });
+    }
+
+    // 3. Draw each cluster
+    clusters.forEach((cl, n) => {
+        const sec = cl.totalDur;
+        const label = sec >= 3600 ? `${Math.floor(sec/3600)}h ${String(Math.floor((sec%3600)/60)).padStart(2,'0')}m`
+                    : sec >= 60   ? `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`
+                    : `${sec}s`;
+
+        // Size & colour by duration
+        const size  = sec < 30  ? 22
+                    : sec < 120 ? 30
+                    : sec < 300 ? 38 : 46;
+        const col   = sec < 30  ? '#f5a623'   // short — amber
+                    : sec < 120 ? '#e67e22'   // medium — orange
+                    : sec < 300 ? '#e74c3c'   // long — red
+                                : '#c0392b';  // very long — deep red
+        const half = size / 2;
+        const icon = L.divIcon({
+            html: `<div style="
+                position:relative;
+                width:${size}px; height:${size}px;
+                background:${col}22;
+                border:2px solid ${col};
+                border-radius:50%;
+                display:flex; align-items:center; justify-content:center;
+                box-shadow: 0 0 10px ${col}88, 0 0 20px ${col}44;
+            ">
+                <div style="
+                    position:absolute; inset:3px; border-radius:50%;
+                    background:${col}44;
+                "></div>
+                <div style="
+                    position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+                    background:${col}; color:#000; font-family:'IBM Plex Mono',monospace;
+                    font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px;
+                    white-space:nowrap; letter-spacing:.5px;
+                ">${label}</div>
+            </div>`,
+            className: '',
+            iconAnchor: [half, half]
+        });
+
+        const visitStr = cl.visits > 1 ? `<b>${cl.visits} visits</b>` : '1 stop';
+        const timeStr  = fmtAxis(cl.startElapsed - (rows[0]?.elapsed || 0));
+        const popup = `
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; min-width:130px">
+                <div style="font-size:12px; font-weight:700; margin-bottom:4px; color:${col}">STOP #${n+1}</div>
+                <div>Duration: <b>${label}</b></div>
+                <div>${visitStr}</div>
+                <div style="opacity:.6; font-size:10px; margin-top:3px">@ ${timeStr} into ride</div>
+            </div>`;
+
+        L.marker([cl.lat, cl.lon], { icon }).addTo(mapInstance).bindPopup(popup);
+    });
+}
+
+function speedColor(norm) {
+    if (norm < 0.5) { const r = Math.round(255 * norm * 2); return `rgb(${r}, 208, 50)`; }
+    const g = Math.round(208 * (1 - (norm - 0.5) * 2)); return `rgb(255, ${g}, 30)`;
+}
+
+// ========================= PLAYBACK ENGINE =========================
+const pb = {
+    playing: false,
+    speed: 1,          // playback multiplier
+    simTime: 0,        // simulated elapsed seconds into trip
+    rafId: null,
+    lastRaf: null,
+    gpsPoints: [],     // full GPS-valid points from tripData
+    marker: null,      // Leaflet moving marker
+    trail: null,       // Leaflet polyline trail behind marker
+    trailPts: [],
+    scrubbing: false,
+};
+
+// Detect which optional channels are available (non-zero) in the dataset
+function pbAvailableChannels() {
+    const channels = ['water_temp','acceleration','lean','throttle','fuel'];
+    const available = {};
+    channels.forEach(ch => {
+        available[ch] = tripData.some(r => r[ch] !== 0 && r[ch] != null);
+    });
+    return available;
+}
+
+function pbHideUnavailableRows(avail) {
+    const map = {
+        water_temp:   ['mtel-row-temp',     'mtel-div-temp'],
+        acceleration: ['mtel-row-accel',    'mtel-div-accel'],
+        lean:         ['mtel-row-lean',     'mtel-div-lean'],
+        throttle:     ['mtel-row-throttle', 'mtel-div-throttle'],
+        fuel:         ['mtel-row-fuel',     'mtel-div-fuel'],
+    };
+    Object.entries(map).forEach(([ch, ids]) => {
+        const vis = avail[ch] ? '' : 'none';
+        ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = vis; });
+    });
+}
+
+function pbInit() {
+    pb.gpsPoints = tripData.filter(r => r.lat !== 0 && r.lon !== 0);
+    pb.simTime = 0;
+    pb.playing = false;
+    pb.trailPts = [];
+    const scrubber = document.getElementById('pbScrubber');
+    if (scrubber) scrubber.value = 0;
+    pbUpdateTimeDisplay();
+    pbUpdatePlayBtn();
+
+    // Show/hide telemetry rows based on available data
+    const avail = pbAvailableChannels();
+    pbHideUnavailableRows(avail);
+
+    // Show overlay as soon as map is loaded
+    document.getElementById('mapTelemetry').classList.add('visible');
+    pbUpdateTelemetry(0);
+}
+
+function pbFmtTime(s) {
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function pbTotalDuration() {
+    if (!tripData.length) return 0;
+    return tripData[tripData.length - 1].elapsed - tripData[0].elapsed;
+}
+
+function pbUpdateTimeDisplay() {
+    const el = document.getElementById('pbTime');
+    if (!el) return;
+    el.textContent = `${pbFmtTime(pb.simTime)} / ${pbFmtTime(pbTotalDuration())}`;
+}
+
+function pbUpdatePlayBtn() {
+    const btn = document.getElementById('pbPlayBtn');
+    if (!btn) return;
+    btn.textContent = pb.playing ? '⏸' : '▶';
+    btn.classList.toggle('active', pb.playing);
+}
+
+// Binary-search the tripData row closest to a given elapsed time
+function pbRowAtTime(elapsed) {
+    const base = tripData[0].elapsed;
+    const target = base + elapsed;
+    let lo = 0, hi = tripData.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (tripData[mid].elapsed < target) lo = mid + 1; else hi = mid;
+    }
+    if (lo > 0 && Math.abs(tripData[lo-1].elapsed - target) < Math.abs(tripData[lo].elapsed - target)) lo--;
+    return tripData[lo];
+}
+
+// Nearest GPS point at or before simTime
+function pbGpsAtTime(elapsed) {
+    if (!pb.gpsPoints.length) return null;
+    const base = tripData[0].elapsed;
+    const target = base + elapsed;
+    let lo = 0, hi = pb.gpsPoints.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (pb.gpsPoints[mid].elapsed < target) lo = mid + 1; else hi = mid;
+    }
+    if (lo > 0 && Math.abs(pb.gpsPoints[lo-1].elapsed - target) < Math.abs(pb.gpsPoints[lo].elapsed - target)) lo--;
+    return pb.gpsPoints[lo];
+}
+
+function pbUpdateTelemetry(elapsed) {
+    const row = pbRowAtTime(elapsed);
+    if (!row) return;
+
+    const gearLabel = (row.gear === 0 || row.gear == null) ? 'N' : String(row.gear);
+    document.getElementById('mtel-speed').textContent = Math.round(row.speed);
+    document.getElementById('mtel-rpm').textContent = Math.round(row.rpm).toLocaleString();
+    document.getElementById('mtel-gear').textContent = gearLabel;
+
+    if (row.water_temp) document.getElementById('mtel-temp').textContent = Math.round(row.water_temp);
+    if (row.acceleration != null) document.getElementById('mtel-accel').textContent = row.acceleration.toFixed(2);
+    if (row.lean != null) document.getElementById('mtel-lean').textContent = Math.round(row.lean);
+    if (row.throttle != null) document.getElementById('mtel-throttle').textContent = Math.round(row.throttle);
+    if (row.fuel != null) document.getElementById('mtel-fuel').textContent = row.fuel.toFixed(1);
+
+    // Colour speed value by intensity
+    const maxSpd = Math.max(...tripData.map(r => r.speed));
+    const norm = row.speed / (maxSpd || 1);
+    document.getElementById('mtel-speed').style.color = speedColor(norm);
+}
+
+function pbMoveMarker(elapsed) {
+    if (!mapInstance || !pb.gpsPoints.length) return;
+    const gps = pbGpsAtTime(elapsed);
+    if (!gps) return;
+    const ll = [gps.lat, gps.lon];
+
+    if (!pb.marker) {
+        const icon = L.divIcon({
+            html: `<div style="
+                width:14px;height:14px;border-radius:50%;
+                background:var(--green,#00d068);
+                border:2px solid #fff;
+                box-shadow:0 0 10px #00d068,0 0 20px #00d06855;
+                animation:pbPulse 1s infinite alternate;
+            "></div>`,
+            className: '', iconAnchor: [7, 7]
+        });
+        pb.marker = L.marker(ll, { icon, zIndexOffset: 1000 }).addTo(mapInstance);
+
+        // Add CSS animation for the pulse
+        if (!document.getElementById('pbPulseStyle')) {
+            const s = document.createElement('style');
+            s.id = 'pbPulseStyle';
+            s.textContent = `@keyframes pbPulse { from { box-shadow:0 0 6px #00d068,0 0 12px #00d06844; } to { box-shadow:0 0 14px #00d068,0 0 28px #00d06888; } }`;
+            document.head.appendChild(s);
+        }
+        pb.trail = L.polyline([], { color: '#00d068', weight: 3, opacity: 0.7 }).addTo(mapInstance);
+    } else {
+        pb.marker.setLatLng(ll);
+    }
+
+    // Grow the trail (keep last 200 trail points for performance)
+    pb.trailPts.push(ll);
+    if (pb.trailPts.length > 200) pb.trailPts.shift();
+    pb.trail.setLatLngs(pb.trailPts);
+}
+
+function pbTick(now) {
+    if (!pb.playing) return;
+    if (pb.lastRaf == null) pb.lastRaf = now;
+    const wallDelta = (now - pb.lastRaf) / 1000;  // real seconds elapsed
+    pb.lastRaf = now;
+
+    const total = pbTotalDuration();
+    pb.simTime += wallDelta * pb.speed;
+    if (pb.simTime >= total) {
+        pb.simTime = total;
+        pb.playing = false;
+        pbUpdatePlayBtn();
+    }
+
+    // Update scrubber
+    const scrubber = document.getElementById('pbScrubber');
+    if (scrubber && !pb.scrubbing) scrubber.value = Math.round((pb.simTime / total) * 1000);
+
+    pbUpdateTimeDisplay();
+    pbUpdateTelemetry(pb.simTime);
+    pbMoveMarker(pb.simTime);
+
+    if (pb.playing) pb.rafId = requestAnimationFrame(pbTick);
+}
+
+function pbPlay() {
+    if (!tripData.length || !pb.gpsPoints.length) return;
+    pb.playing = !pb.playing;
+    pb.lastRaf = null;
+    pbUpdatePlayBtn();
+    if (pb.playing) pb.rafId = requestAnimationFrame(pbTick);
+}
+
+function pbReset() {
+    pb.playing = false;
+    pb.simTime = 0;
+    pb.trailPts = [];
+    pb.lastRaf = null;
+    cancelAnimationFrame(pb.rafId);
+    if (pb.trail) pb.trail.setLatLngs([]);
+    if (pb.marker && pb.gpsPoints.length) pb.marker.setLatLng([pb.gpsPoints[0].lat, pb.gpsPoints[0].lon]);
+    const scrubber = document.getElementById('pbScrubber');
+    if (scrubber) scrubber.value = 0;
+    pbUpdatePlayBtn();
+    pbUpdateTimeDisplay();
+    pbUpdateTelemetry(0);
+}
+
+function pbSetSpeed(x) {
+    pb.speed = x;
+    document.getElementById('pbSpeedLabel').textContent = x + '×';
+    document.querySelectorAll('.pb-speed-btn').forEach(btn => {
+        btn.classList.toggle('active', parseFloat(btn.textContent) === x);
+    });
+}
+
+function pbScrub(val) {
+    pb.scrubbing = true;
+    const total = pbTotalDuration();
+    pb.simTime = (val / 1000) * total;
+    pb.trailPts = [];
+    if (pb.trail) pb.trail.setLatLngs([]);
+    pbUpdateTimeDisplay();
+    pbUpdateTelemetry(pb.simTime);
+    pbMoveMarker(pb.simTime);
+}
+
+function pbScrubEnd() {
+    pb.scrubbing = false;
+    pb.lastRaf = null;  // reset so next tick doesn't jump
+}
+
+// ========================= EXPORT =========================
+function exportCSV() {
+    if (!tripData.length) return;
+    const h = 'elapsed,lat,lon,speed,rpm,water_temp,gear,lean,acceleration,throttle,brake,fuel';
+    const rows = tripData.map(r => `${r.elapsed},${r.lat},${r.lon},${r.speed},${r.rpm},${r.water_temp},${r.gear},${r.lean},${r.acceleration},${r.throttle},${r.brake},${r.fuel}`);
+    const blob = new Blob([h + '\n' + rows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'trip_analyzed.csv'; a.click();
+    showToast('EXPORTED');
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+
+// ========================= COMBINED MULTI-LINE CHART =========================
+const COMBINED_SERIES = [
+    { key: 'speed',       label: 'Speed',   unit: 'km/h', color: '#00d068', scale: 1,     decimals: 0 },
+    { key: 'rpm',         label: 'RPM',     unit: 'rpm',  color: '#4fc3f7', scale: 0.01,  decimals: 0 },
+    { key: 'water_temp',  label: 'Temp',    unit: '°C',   color: '#f5a623', scale: 1,     decimals: 0 },
+    { key: 'gear',        label: 'Gear',    unit: '',     color: '#7b68ee', scale: 20,    decimals: 0 },
+    { key: 'lean',        label: 'Lean',    unit: '°',    color: '#e74c3c', scale: 1,     decimals: 1 },
+    { key: 'acceleration',label: 'Accel',   unit: 'G',    color: '#ff6b6b', scale: 100,   decimals: 2 },
+    { key: 'throttle',    label: 'Throttle',unit: '%',    color: '#2ecc71', scale: 1,     decimals: 0 },
+    { key: 'fuel',        label: 'Fuel',    unit: 'L/100',color: '#f39c12', scale: 5,     decimals: 1 },
+];
+
+let combinedState = {
+    enabled: new Set(COMBINED_SERIES.map(s => s.key)),
+    zoomStart: 0,
+    zoomEnd: 0,
+    mouseIdx: -1,
+    mouseX: undefined,
+    isDragging: false,
+    dragStartX: 0,
+    dragStartZS: 0,
+    dragStartZE: 0,
+    xs: [],
+    series: {},   // key -> normalised y array (0..100 scale for drawing)
+    rawSeries: {} // key -> raw values
+};
+
+function renderCombinedChart() {
+    if (!sampledData.length) return;
+    const sm = sampledData;
+    const xs = sm.map(r => r.elapsed);
+    combinedState.xs = xs;
+    combinedState.zoomStart = 0;
+    combinedState.zoomEnd = xs.length - 1;
+
+    // Reset enabled set before auto-detecting supported channels
+    combinedState.enabled = new Set(COMBINED_SERIES.map(s => s.key));
+
+    // Precompute raw values and normalised 0-100 for each series
+    // Auto-disable channels where ALL values are 0 (not supported by this model)
+    COMBINED_SERIES.forEach(s => {
+        const raw = sm.map(r => r[s.key]);
+        combinedState.rawSeries[s.key] = raw;
+        // If every value is exactly 0, this channel is unsupported — hide it
+        const allZero = raw.every(v => v === 0 || v === null || v === undefined || isNaN(v));
+        if (allZero) {
+            combinedState.enabled.delete(s.key);
+        }
+        // Normalise: use global min/max so pan/zoom don't change scale
+        let mn = Math.min(...raw), mx = Math.max(...raw);
+        if (mn === mx) { mn -= 1; mx += 1; }
+        const range = mx - mn;
+        combinedState.series[s.key] = raw.map(v => ((v - mn) / range) * 80 + 10); // 10..90 norm
+    });
+
+    buildCombinedLegend();
+    initCombinedCanvas();
+}
+
+function buildCombinedLegend() {
+    const el = document.getElementById('combinedLegend');
+    if (!el) return;
+    el.innerHTML = '';
+    COMBINED_SERIES.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'cleg-btn ' + (combinedState.enabled.has(s.key) ? 'active' : 'inactive');
+        btn.dataset.key = s.key;
+        btn.innerHTML = `<span class="cleg-dot" style="background:${s.color}"></span>${s.label}${s.unit ? ' <span style="opacity:.5">${s.unit}</span>' : ''}`;
+        btn.style.borderColor = combinedState.enabled.has(s.key) ? s.color + '60' : '';
+        btn.onclick = () => {
+            if (combinedState.enabled.has(s.key)) {
+                if (combinedState.enabled.size <= 1) return; // keep at least one
+                combinedState.enabled.delete(s.key);
+            } else {
+                combinedState.enabled.add(s.key);
+            }
+            buildCombinedLegend();
+            drawCombined();
+        };
+        el.appendChild(btn);
+    });
+}
+
+function initCombinedCanvas() {
+    const container = document.getElementById('crh-combined');
+    if (!container) return;
+    container.innerHTML = '';
+    const dpr = window.devicePixelRatio || 1;
+    const height = 340;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'crh-canvas';
+    canvas.style.height = height + 'px';
+    container.appendChild(canvas);
+    combinedState.canvas = canvas;
+    combinedState.height = height;
+
+    function resize() {
+        const w = container.clientWidth;
+        canvas.width = w * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = w + 'px';
+        drawCombined();
+    }
+
+    canvas.addEventListener('mousemove', e => onCombinedMouseMove(e));
+    canvas.addEventListener('mouseleave', () => {
+        combinedState.mouseIdx = -1;
+        drawCombined();
+        document.getElementById('crh-combined-tooltip').classList.remove('visible');
+        const hud = document.getElementById('liveHud');
+        hud.classList.add('dim');
+    });
+    canvas.addEventListener('wheel', e => { e.preventDefault(); onCombinedWheel(e); }, { passive: false });
+    canvas.addEventListener('mousedown', e => {
+        combinedState.isDragging = true;
+        combinedState.dragStartX = e.clientX;
+        combinedState.dragStartZS = combinedState.zoomStart;
+        combinedState.dragStartZE = combinedState.zoomEnd;
+    });
+    window.addEventListener('mouseup', () => { combinedState.isDragging = false; });
+
+    new ResizeObserver(resize).observe(container);
+    resize();
+}
+
+function drawCombined() {
+    const state = combinedState;
+    const canvas = state.canvas;
+    if (!canvas || !canvas.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = { l: 12 * dpr, r: 12 * dpr, t: 12 * dpr, b: 38 * dpr };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const xs = state.xs;
+    const zs = state.zoomStart, ze = state.zoomEnd;
+    const sliceX = xs.slice(zs, ze + 1);
+    if (!sliceX.length) return;
+    const minX = sliceX[0], maxX = sliceX[sliceX.length - 1];
+
+    const toX = v => pad.l + (v - minX) / (maxX - minX || 1) * chartW;
+    const toY = norm => pad.t + (1 - norm / 100) * chartH;
+
+    // Grid lines
+    ctx.strokeStyle = gc('--sidebar-border');
+    ctx.lineWidth = 1;
+    ctx.fillStyle = gc('--text-dim');
+    for (let i = 0; i <= 4; i++) {
+        const cy = pad.t + (i / 4) * chartH;
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath(); ctx.moveTo(pad.l, cy); ctx.lineTo(W - pad.r, cy); ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+    // X ticks
+    ctx.textAlign = 'center';
+    const xTicks = Math.min(8, Math.floor(chartW / (60 * dpr)));
+    for (let i = 0; i <= xTicks; i++) {
+        const xv = minX + (maxX - minX) * i / xTicks;
+        const tx = toX(xv);
+        // tick mark
+        ctx.globalAlpha = 0.4;
+        ctx.strokeStyle = gc('--text-dim');
+        ctx.lineWidth = dpr;
+        ctx.beginPath(); ctx.moveTo(tx, H - pad.b); ctx.lineTo(tx, H - pad.b + 4 * dpr); ctx.stroke();
+        // label
+        ctx.font = `bold ${10 * dpr}px "IBM Plex Mono", monospace`;
+        ctx.fillStyle = gc('--text');
+        ctx.globalAlpha = 0.85;
+        ctx.fillText(fmtAxis(xv), tx, H - 10 * dpr);
+        ctx.globalAlpha = 1;
+    }
+
+    // Draw each enabled series
+    COMBINED_SERIES.forEach(s => {
+        if (!state.enabled.has(s.key)) return;
+        const normY = state.series[s.key];
+        const sliceY = normY.slice(zs, ze + 1);
+
+        // Subtle fill
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(toX(sliceX[0]), toY(sliceY[0]));
+        for (let i = 1; i < sliceX.length; i++) ctx.lineTo(toX(sliceX[i]), toY(sliceY[i]));
+        ctx.lineTo(toX(sliceX[sliceX.length - 1]), pad.t + chartH);
+        ctx.lineTo(toX(sliceX[0]), pad.t + chartH);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + chartH);
+        grad.addColorStop(0, s.color + '18');
+        grad.addColorStop(1, s.color + '02');
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+
+        // Line
+        ctx.beginPath();
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = 0.85;
+        ctx.moveTo(toX(sliceX[0]), toY(sliceY[0]));
+        for (let i = 1; i < sliceX.length; i++) ctx.lineTo(toX(sliceX[i]), toY(sliceY[i]));
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    });
+
+    // Crosshair
+    if (state.mouseIdx >= 0 && state.mouseIdx < sliceX.length) {
+        // Both line and dots snap to nearest data point — no mouse offset
+        const lineX = toX(sliceX[state.mouseIdx]);
+
+        ctx.strokeStyle = gc('--text-dim');
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = dpr;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.beginPath(); ctx.moveTo(lineX, pad.t); ctx.lineTo(lineX, H - pad.b); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+
+        // Dots + inline labels on each enabled series
+        const dotX = toX(sliceX[state.mouseIdx]);
+        const labelOnRight = dotX < W / 2;
+
+        // Collect label positions and resolve overlaps
+        const labelItems = [];
+        COMBINED_SERIES.forEach(s => {
+            if (!state.enabled.has(s.key)) return;
+            const normY = state.series[s.key];
+            const dotY = toY(normY[zs + state.mouseIdx]);
+            const rawVal = state.rawSeries[s.key][zs + state.mouseIdx];
+            labelItems.push({ s, dotY, rawVal });
+        });
+
+        // Sort by dotY to resolve overlaps top→bottom
+        labelItems.sort((a, b) => a.dotY - b.dotY);
+
+        const labelFontSize = 9 * dpr;
+        const lineH = labelFontSize * 1.5;
+        const minGap = lineH * 0.85;
+
+        // Push overlapping labels apart
+        for (let i = 1; i < labelItems.length; i++) {
+            if (labelItems[i].dotY - labelItems[i-1].dotY < minGap) {
+                labelItems[i].dotY = labelItems[i-1].dotY + minGap;
+            }
+        }
+
+        ctx.font = `600 ${labelFontSize}px "IBM Plex Mono", monospace`;
+
+        labelItems.forEach(({ s, dotY, rawVal }) => {
+            const origDotY = toY(state.series[s.key][zs + state.mouseIdx]);
+
+            // Draw dot at original position
+            ctx.beginPath();
+            ctx.arc(dotX, origDotY, 3.5 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = 0.95;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            // Format value
+            const valStr = s.decimals > 0 ? rawVal.toFixed(s.decimals) : Math.round(rawVal).toString();
+            const labelText = `${s.label}: ${valStr}${s.unit ? ' ' + s.unit : ''}`;
+
+            const padding = 5 * dpr;
+            const textW = ctx.measureText(labelText).width;
+            const bgW = textW + padding * 2;
+            const bgH = labelFontSize + padding * 1.4;
+
+            const offsetX = 8 * dpr;
+            const bgX = labelOnRight ? dotX + offsetX : dotX - offsetX - bgW;
+            const bgY = dotY - bgH / 2;
+
+            // Background pill
+            ctx.save();
+            ctx.globalAlpha = 0.82;
+            ctx.fillStyle = gc('--card');
+            const r = 3 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(bgX + r, bgY);
+            ctx.lineTo(bgX + bgW - r, bgY);
+            ctx.arcTo(bgX + bgW, bgY, bgX + bgW, bgY + bgH, r);
+            ctx.lineTo(bgX + bgW, bgY + bgH - r);
+            ctx.arcTo(bgX + bgW, bgY + bgH, bgX, bgY + bgH, r);
+            ctx.lineTo(bgX + r, bgY + bgH);
+            ctx.arcTo(bgX, bgY + bgH, bgX, bgY, r);
+            ctx.lineTo(bgX, bgY + r);
+            ctx.arcTo(bgX, bgY, bgX + bgW, bgY, r);
+            ctx.closePath();
+            ctx.fill();
+
+            // Border
+            ctx.globalAlpha = 0.55;
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = dpr;
+            ctx.stroke();
+            ctx.restore();
+
+            // Text
+            ctx.textAlign = 'left';
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = 1;
+            ctx.fillText(labelText, bgX + padding, bgY + bgH / 2 + labelFontSize * 0.36);
+        });
+    }
+
+    // Save draw metrics
+    state._pad = pad; state._chartW = chartW; state._dpr = dpr;
+    state._minX = minX; state._maxX = maxX;
+}
+
+function onCombinedMouseMove(e) {
+    const state = combinedState;
+    if (!state._pad) return;
+    const canvas = state.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = state._dpr || 1;
+    const mx = (e.clientX - rect.left) * dpr;
+    const { _pad: pad, xs, zoomStart: zs, zoomEnd: ze } = state;
+    const sliceX = xs.slice(zs, ze + 1);
+    const minX = sliceX[0], maxX = sliceX[sliceX.length - 1];
+
+    // Map pixel → time → nearest data index (fixes misalignment when data has time gaps)
+    const frac = (mx - pad.l) / state._chartW;
+    const tAtMouse = minX + frac * (maxX - minX);
+    // Binary search for nearest index in sliceX by time
+    let lo = 0, hi = sliceX.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (sliceX[mid] < tAtMouse) lo = mid + 1; else hi = mid;
+    }
+    // Pick closer of lo-1 or lo
+    const idx = (lo > 0 && Math.abs(sliceX[lo-1] - tAtMouse) < Math.abs(sliceX[lo] - tAtMouse))
+        ? lo - 1 : lo;
+
+    state.mouseIdx = Math.max(0, Math.min(sliceX.length - 1, idx));
+    state.mouseX = mx;
+    if (!state._rafPending) {
+        state._rafPending = true;
+        requestAnimationFrame(() => { state._rafPending = false; drawCombined(); });
+    }
+
+    // Tooltip
+    const tt = document.getElementById('crh-combined-tooltip');
+    const container = document.getElementById('crh-combined');
+    if (tt && container) {
+        const xVal = xs[zs + idx];
+        let html = `<div class="crh-tooltip-time">${fmtAxis(xVal)}</div>`;
+        COMBINED_SERIES.forEach(s => {
+            if (!state.enabled.has(s.key)) return;
+            const raw = state.rawSeries[s.key][zs + idx];
+            html += `<div class="crh-tooltip-row">
+                <div class="crh-tooltip-label" style="display:flex;align-items:center;gap:5px">
+                    <span style="width:6px;height:6px;border-radius:50%;background:${s.color};display:inline-block;flex-shrink:0"></span>${s.label}
+                </div>
+                <div class="crh-tooltip-val" style="color:${s.color};font-size:13px">${fmtNum(raw, s.decimals)}${s.unit ? '<span style="font-size:9px;opacity:.6;margin-left:2px">' + s.unit + '</span>' : ''}</div>
+            </div>`;
+        });
+        tt.innerHTML = html;
+        const bx = e.clientX - rect.left;
+        const by = e.clientY - rect.top;
+        const tw = 170;
+        const tx = bx + 16 > container.clientWidth - tw ? bx - tw - 10 : bx + 16;
+        tt.style.left = tx + 'px';
+        tt.style.top = Math.max(0, by - 20) + 'px';
+        tt.classList.add('visible');
+    }
+
+    // Update Live HUD
+    const row = sampledData[zs + state.mouseIdx];
+    if (row) {
+        document.getElementById('hud-time').textContent  = fmtAxis(row.elapsed);
+        document.getElementById('hud-speed').textContent = row.speed;
+        document.getElementById('hud-rpm').textContent   = row.rpm;
+        document.getElementById('hud-gear').textContent  = row.gear === 0 ? 'N' : row.gear;
+        document.getElementById('hud-temp').textContent  = row.water_temp;
+        document.getElementById('hud-lean').textContent  = row.lean.toFixed(1);
+        document.getElementById('hud-accel').textContent = row.acceleration.toFixed(2);
+        const hud = document.getElementById('liveHud');
+        hud.classList.add('active');
+        hud.classList.remove('dim');
+    }
+
+    // Pan
+    if (state.isDragging) {
+        const dx = e.clientX - state.dragStartX;
+        const totalLen = xs.length;
+        const visLen = state.dragStartZE - state.dragStartZS + 1;
+        const chartWidthCss = state._chartW / dpr;
+        const shift = Math.round(-dx / (chartWidthCss / visLen));
+        const ns = Math.max(0, Math.min(totalLen - visLen, state.dragStartZS + shift));
+        state.zoomStart = ns;
+        state.zoomEnd = ns + visLen - 1;
+        drawCombined();
+    }
+}
+
+function onCombinedWheel(e) {
+    const state = combinedState;
+    const factor = e.deltaY > 0 ? 1.15 : 0.87;
+    const totalLen = state.xs.length;
+    const visLen = state.zoomEnd - state.zoomStart + 1;
+    let newLen = Math.round(visLen * factor);
+    newLen = Math.max(50, Math.min(totalLen, newLen));
+    const center = (state.zoomStart + state.zoomEnd) / 2;
+    let ns = Math.round(center - newLen / 2);
+    ns = Math.max(0, Math.min(totalLen - newLen, ns));
+    state.zoomStart = ns;
+    state.zoomEnd = ns + newLen - 1;
+    drawCombined();
+}
+
+function setZoomCombined(seconds) {
+    const state = combinedState;
+    const xs = state.xs;
+    if (!xs.length) return;
+    if (seconds === 0) {
+        state.zoomStart = 0;
+        state.zoomEnd = xs.length - 1;
+    } else {
+        const totalDur = xs[xs.length - 1];
+        const frac = seconds / totalDur;
+        const visLen = Math.round(xs.length * Math.min(frac, 1));
+        state.zoomStart = 0;
+        state.zoomEnd = Math.max(0, visLen - 1);
+    }
+    drawCombined();
+    const panel = document.getElementById('panel-combined');
+    if (panel) {
+        panel.querySelectorAll('.zoom-btn').forEach((b, i) => {
+            const map = [0, 300, 600, 1800];
+            b.classList.toggle('active', map[i] === seconds);
+        });
+    }
+}
+
+// Init library after all functions are defined
+loadLibrary();
+
+// =========================
+// MOBILE SIDEBAR
+// =========================
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn = document.getElementById('mobileMenuToggle');
+    const isOpen = sidebar.classList.contains('open');
+    if (isOpen) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+        btn.classList.remove('open');
+    } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('visible');
+        btn.classList.add('open');
+    }
+}
+
+function closeMobileSidebar() {
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('visible');
+        document.getElementById('mobileMenuToggle').classList.remove('open');
+    } else {
+        document.getElementById('sidebar').classList.add('collapsed');
+        document.body.classList.add('sidebar-hidden');
+    }
+}
+
+function revealSidebar() {
+    document.getElementById('sidebar').classList.remove('collapsed');
+    document.body.classList.remove('sidebar-hidden');
+}
+
+// Close sidebar when nav item tapped on mobile
+document.getElementById('navMenu').addEventListener('click', function() {
+    if (window.innerWidth <= 768) closeMobileSidebar();
+});
+
+
+// Apply saved language after DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    const saved = localStorage.getItem('kleLang') || 'ru';
+    const btn = document.querySelector(`.lang-btn[data-lang="${saved}"]`);
+    setLang(saved, btn);
+});
+
+</script>
+</body>
+</html>

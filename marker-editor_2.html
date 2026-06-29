@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>EPC Marker Editor — Kawasaki KLE500SE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --green: #00d068;
+    --green-dim: rgba(0,208,104,0.15);
+    --green-glow: rgba(0,208,104,0.4);
+    --bg: #0c0c0e;
+    --card: #111114;
+    --text: #d8dce8;
+    --text-dim: #565b6e;
+    --border: #1c1c22;
+    --border2: #2a2a3a;
+    --red: #ff4d4d;
+    --yellow: #ffd700;
+    --yellow-dim: rgba(255,215,0,0.15);
+    --panel: #0a0a0f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+/* ── HEADER ── */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    height: 48px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.topbar-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text);
+}
+.topbar-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--green);
+    opacity: 0.7;
+}
+.topbar-sep { flex: 1; }
+
+.btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.btn:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.btn.primary { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.btn.primary:hover { background: rgba(0,208,104,0.25); }
+.btn.danger { border-color: rgba(255,77,77,0.4); color: var(--red); }
+.btn.danger:hover { background: rgba(255,77,77,0.1); border-color: var(--red); }
+
+/* ── LAYOUT ── */
+.layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ── LEFT PANEL: section picker ── */
+.panel-left {
+    width: 240px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+.panel-left h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--border);
+}
+.section-list {
+    overflow-y: auto;
+    flex: 1;
+}
+.section-list::-webkit-scrollbar { width: 3px; }
+.section-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.section-item {
+    padding: 9px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--text-dim);
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+.section-item .s-idx {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    min-width: 18px;
+    opacity: 0.5;
+}
+.section-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.section-item.active {
+    background: rgba(0,208,104,0.06);
+    color: var(--text);
+    font-weight: 600;
+}
+.section-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--green);
+}
+
+/* ── CENTER: viewport ── */
+.viewport-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.viewport-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.zoom-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    min-width: 40px;
+}
+.drop-hint {
+    flex: 1;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+#viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    background: #f0f0f0;
+}
+#viewport.adding { cursor: crosshair; }
+#viewport.dragging { cursor: grabbing; }
+#imgWrapper {
+    position: absolute;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+#mainImg {
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* ── MARKERS ON IMAGE ── */
+.marker {
+    position: absolute;
+    background: rgba(255,215,0,0.18);
+    border: 1.5px solid rgba(255,215,0,0.65);
+    border-radius: 3px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+    z-index: 10;
+}
+.marker:hover {
+    background: rgba(255,215,0,0.32);
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255,215,0,0.5);
+}
+.marker.selected {
+    background: rgba(255,215,0,0.38);
+    border-color: #ffd700;
+    border-width: 2px;
+    box-shadow: 0 0 14px rgba(255,215,0,0.7);
+    z-index: 20;
+}
+.marker .marker-idx {
+    position: absolute;
+    top: -1px; left: -1px;
+    background: rgba(255,215,0,0.85);
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 3px;
+    border-radius: 2px 0 2px 0;
+    line-height: 1;
+    pointer-events: none;
+}
+/* resize handle */
+.resize-handle {
+    position: absolute;
+    right: -4px; bottom: -4px;
+    width: 10px; height: 10px;
+    background: #ffd700;
+    border-radius: 2px;
+    cursor: se-resize;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+.marker.selected .resize-handle { opacity: 1; }
+
+/* adding preview ghost */
+#addGhost {
+    position: absolute;
+    background: rgba(0,208,104,0.2);
+    border: 2px dashed var(--green);
+    border-radius: 3px;
+    pointer-events: none;
+    display: none;
+    z-index: 50;
+}
+
+/* ── RIGHT PANEL: marker editor ── */
+.panel-right {
+    width: 280px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+.panel-right h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--border);
+}
+.parts-list {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+.parts-list::-webkit-scrollbar { width: 3px; }
+.parts-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.part-item {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.part-item:hover { background: rgba(255,255,255,0.025); }
+.part-item.active { background: rgba(0,208,104,0.06); }
+.part-item.active .part-ref { color: var(--green); }
+
+.part-ref {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--yellow);
+    margin-bottom: 2px;
+}
+.part-desc {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+
+/* marker dots row */
+.marker-slots {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.slot-dot {
+    width: 20px; height: 20px;
+    border-radius: 3px;
+    border: 1.5px dashed var(--border2);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+}
+.slot-dot.filled {
+    border-style: solid;
+    border-color: rgba(255,215,0,0.6);
+    background: rgba(255,215,0,0.15);
+}
+.slot-dot.filled:hover {
+    border-color: var(--red);
+    background: rgba(255,77,77,0.12);
+}
+.slot-dot .dot-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    color: rgba(255,215,0,0.7);
+    pointer-events: none;
+}
+.slot-dot.empty:hover {
+    border-color: var(--green);
+    background: var(--green-dim);
+}
+.slot-dot.adding-target {
+    border-style: solid;
+    border-color: var(--green);
+    background: var(--green-dim);
+    animation: blink 0.7s ease-in-out infinite;
+}
+@keyframes blink {
+    0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+
+/* editor form (bottom of right panel) */
+.editor-form {
+    padding: 14px;
+    border-top: 1px solid var(--border);
+    background: var(--card);
+    flex-shrink: 0;
+}
+.editor-form.hidden { display: none; }
+.editor-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 10px;
+}
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.form-row label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    min-width: 24px;
+    text-align: right;
+}
+.form-row input[type=number] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 8px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.form-row input[type=number]:focus { border-color: var(--green); }
+.form-row .unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    min-width: 12px;
+}
+.form-group-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    margin-top: 4px;
+}
+.form-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+/* output panel */
+.output-section {
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    padding: 12px 14px;
+    flex-shrink: 0;
+}
+.output-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.output-label .copy-btn {
+    margin-left: auto;
+    padding: 2px 8px;
+    font-size: 8px;
+}
+#outputCode {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--green);
+    line-height: 1.6;
+    max-height: 140px;
+    overflow-y: auto;
+    white-space: pre;
+    cursor: text;
+    user-select: all;
+}
+#outputCode::-webkit-scrollbar { width: 3px; }
+#outputCode::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* toast */
+#toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--green); color: #000;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── SIZE TEMPLATES ── */
+.templates-section {
+    padding: 10px 14px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--card);
+    flex-shrink: 0;
+}
+.templates-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.templates-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    flex: 1;
+}
+.tpl-edit-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.12s;
+}
+.tpl-edit-btn:hover { border-color: var(--green); color: var(--green); }
+.tpl-edit-btn.active { border-color: var(--yellow); color: var(--yellow); background: rgba(255,215,0,0.06); }
+
+.templates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+.tpl-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 7px 6px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: hidden;
+}
+.tpl-btn:hover {
+    border-color: var(--yellow);
+    background: var(--yellow-dim);
+}
+.tpl-btn.applied {
+    border-color: var(--yellow);
+    background: var(--yellow-dim);
+    animation: tplFlash 0.35s ease-out;
+}
+@keyframes tplFlash {
+    0%   { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); }
+    60%  { box-shadow: 0 0 0 5px rgba(255,215,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+}
+.tpl-btn.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.tpl-preview {
+    position: relative;
+    width: 36px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tpl-rect {
+    background: rgba(255,215,0,0.2);
+    border: 1.5px solid rgba(255,215,0,0.7);
+    border-radius: 2px;
+    transition: all 0.15s;
+}
+.tpl-btn:hover .tpl-rect { background: rgba(255,215,0,0.35); border-color: var(--yellow); }
+.tpl-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: color 0.15s;
+}
+.tpl-btn:hover .tpl-name { color: var(--yellow); }
+.tpl-dims {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 7px;
+    color: var(--text-dim);
+    opacity: 0.7;
+}
+
+/* edit mode inputs inside tpl button */
+.tpl-edit-inputs {
+    display: none;
+    gap: 3px;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding: 0 2px;
+}
+.tpl-edit-inputs.visible { display: flex; }
+.tpl-inp-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.tpl-inp-row span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 7px;
+    color: var(--text-dim);
+    min-width: 8px;
+}
+.tpl-inp-row input {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--yellow);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    padding: 2px 4px;
+    outline: none;
+    text-align: center;
+}
+.tpl-inp-row input:focus { border-color: var(--yellow); }
+.tpl-name-input {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    padding: 2px 4px;
+    width: 100%;
+    outline: none;
+    text-align: center;
+    margin-bottom: 2px;
+}
+.tpl-name-input:focus { border-color: var(--green); }
+
+/* no-section state */
+.no-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--text-dim);
+    font-size: 12px;
+}
+.no-section .ns-icon { font-size: 32px; opacity: 0.3; }
+</style>
+</head>
+<body>
+
+<div id="toast">СКОПИРОВАНО</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-title">Marker Editor</div>
+    <div class="topbar-badge">EPC / KLE500SE</div>
+    <div class="topbar-sep"></div>
+    <button class="btn" onclick="changeZoom(-0.15)">−</button>
+    <button class="btn" onclick="changeZoom(+0.15)">+</button>
+    <button class="btn" onclick="fitToScreen()">Fit</button>
+    <span id="zoomLabel" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);min-width:36px;">100%</span>
+    <div style="width:1px;height:20px;background:var(--border);"></div>
+    <button class="btn primary" id="btnAddMode" onclick="toggleAddMode()">＋ Добавить метку</button>
+    <button class="btn" onclick="copyAllOutput()">⎘ Копировать data.js</button>
+</div>
+
+<div class="layout">
+
+    <!-- LEFT: section list -->
+    <div class="panel-left">
+        <h3>Разделы</h3>
+        <div class="section-list" id="sectionList"></div>
+    </div>
+
+    <!-- CENTER: diagram viewport -->
+    <div class="viewport-wrap">
+        <div class="viewport-toolbar">
+            <span class="drop-hint" id="modeHint">← Выберите раздел для редактирования</span>
+        </div>
+        <div id="viewport">
+            <div id="addGhost"></div>
+            <div id="imgWrapper">
+                <img id="mainImg" draggable="false" src="" alt="">
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: parts + editor -->
+    <div class="panel-right">
+        <h3>Детали</h3>
+        <div class="parts-list" id="partsList">
+            <div class="no-section">
+                <div class="ns-icon">⬡</div>
+                <div>Выберите раздел</div>
+            </div>
+        </div>
+
+        <!-- inline editor for selected marker -->
+        <div class="editor-form hidden" id="editorForm">
+            <div class="editor-title" id="editorTitle">МЕТКА #1</div>
+
+            <div class="form-group-label">Позиция (% от изображения)</div>
+            <div class="form-row">
+                <label>X</label>
+                <input type="number" id="inX" min="0" max="100" step="0.1" oninput="applyEditorLive()">
+                <span class="unit">%</span>
+            </div>
+            <div class="form-row">
+                <label>Y</label>
+                <input type="number" id="inY" min="0" max="100" step="0.1" oninput="applyEditorLive()">
+                <span class="unit">%</span>
+            </div>
+
+            <div class="form-group-label" style="margin-top:8px;">Размер (% от изображения)</div>
+            <div class="form-row">
+                <label>W</label>
+                <input type="number" id="inW" min="0.1" max="100" step="0.1" oninput="applyEditorLive()">
+                <span class="unit">%</span>
+            </div>
+            <div class="form-row">
+                <label>H</label>
+                <input type="number" id="inH" min="0.1" max="100" step="0.1" oninput="applyEditorLive()">
+                <span class="unit">%</span>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn danger" style="flex:1" onclick="deleteSelectedMarker()">✕ Удалить</button>
+                <button class="btn primary" style="flex:1" onclick="closeEditor()">✓ ОК</button>
+            </div>
+        </div>
+
+        <!-- size templates -->
+        <div class="templates-section" id="templatesSection">
+            <div class="templates-header">
+                <span class="templates-label">Шаблоны размера</span>
+                <button class="tpl-edit-btn" id="tplEditBtn" onclick="toggleTemplateEdit()">✎ Изменить</button>
+            </div>
+            <div class="templates-grid" id="templatesGrid"></div>
+        </div>
+
+        <!-- output -->
+        <div class="output-section">
+            <div class="output-label">
+                Результат
+                <button class="btn copy-btn" onclick="copyOutput()">⎘ Copy</button>
+            </div>
+            <div id="outputCode">// Выберите раздел</div>
+        </div>
+    </div>
+
+</div>
+
+<script src="data.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentSection = null;
+let currentSectionIndex = -1;
+// Deep-clone editable markers: { partIndex, markerIndex, x, y, w, h, el }[]
+let markers = [];
+// { partIndex, markerSlot } — which slot is selected
+let selectedMarker = null; // marker object from markers[]
+
+// viewport pan/zoom
+let scale = 1, tx = 0, ty = 0;
+let isPanning = false, panStartX, panStartY;
+
+// add-mode
+let isAddMode = false;
+let addTargetPart = null; // partIndex
+let addSlot = null;       // 0-3
+
+// resize
+let isResizing = false, resizeMarker = null, resizeStartX, resizeStartY, resizeStartW, resizeStartH;
+
+// drag marker
+let isDraggingMarker = false, dragMarker = null, dragStartX, dragStartY, dragStartMX, dragStartMY;
+
+const DEFAULT_W = 3.0, DEFAULT_H = 2.2;
+const MAX_MARKERS = 4;
+
+// ═══════════════════════════════════════════════
+// TEMPLATES
+// ═══════════════════════════════════════════════
+const TEMPLATES_KEY = 'epc_marker_templates';
+const DEFAULT_TEMPLATES = [
+    { name: 'XS',   w: 3.0,  h: 1.2  },
+    { name: 'S',    w: 4.5,  h: 1.2  },
+    { name: 'M',    w: 5.5,  h: 1.2  },
+    { name: 'L',    w: 8.0,  h: 5.5  },
+];
+let templates = loadTemplates();
+let isTemplateEditMode = false;
+
+function loadTemplates() {
+    try {
+        const saved = localStorage.getItem(TEMPLATES_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return DEFAULT_TEMPLATES.map(t => ({...t}));
+}
+
+function saveTemplates() {
+    try { localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates)); } catch(e) {}
+}
+
+function buildTemplatesGrid() {
+    const grid = document.getElementById('templatesGrid');
+    grid.innerHTML = '';
+
+    templates.forEach((tpl, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'tpl-btn' + (selectedMarker ? '' : ' disabled');
+        btn.id = `tpl-${i}`;
+
+        // clamp preview rect proportionally inside 36×24 box
+        const maxD = Math.max(tpl.w, tpl.h);
+        const rx = Math.max(4, Math.round(tpl.w / maxD * 34));
+        const ry = Math.max(3, Math.round(tpl.h / maxD * 22));
+
+        btn.innerHTML = `
+            <div class="tpl-preview">
+                <div class="tpl-rect" style="width:${rx}px;height:${ry}px;"></div>
+            </div>
+            <div class="tpl-name">${tpl.name}</div>
+            <div class="tpl-dims">${tpl.w} × ${tpl.h}%</div>
+            <div class="tpl-edit-inputs" id="tpl-inputs-${i}">
+                <input class="tpl-name-input" type="text" value="${tpl.name}" placeholder="Имя"
+                    oninput="updateTemplateName(${i}, this.value)" onclick="event.stopPropagation()">
+                <div class="tpl-inp-row">
+                    <span>W</span>
+                    <input type="number" value="${tpl.w}" min="0.1" max="99" step="0.1"
+                        oninput="updateTemplateSize(${i}, 'w', this.value)" onclick="event.stopPropagation()">
+                    <span>%</span>
+                </div>
+                <div class="tpl-inp-row">
+                    <span>H</span>
+                    <input type="number" value="${tpl.h}" min="0.1" max="99" step="0.1"
+                        oninput="updateTemplateSize(${i}, 'h', this.value)" onclick="event.stopPropagation()">
+                    <span>%</span>
+                </div>
+            </div>
+        `;
+
+        if (!isTemplateEditMode) {
+            btn.onclick = () => applyTemplate(i);
+        }
+
+        grid.appendChild(btn);
+    });
+
+    if (isTemplateEditMode) showTemplateEditInputs(true);
+}
+
+function toggleTemplateEdit() {
+    isTemplateEditMode = !isTemplateEditMode;
+    const editBtn = document.getElementById('tplEditBtn');
+    editBtn.textContent = isTemplateEditMode ? '✓ Готово' : '✎ Изменить';
+    editBtn.classList.toggle('active', isTemplateEditMode);
+    buildTemplatesGrid();
+}
+
+function showTemplateEditInputs(show) {
+    templates.forEach((_, i) => {
+        const inp = document.getElementById(`tpl-inputs-${i}`);
+        if (inp) inp.classList.toggle('visible', show);
+        const btn = document.getElementById(`tpl-${i}`);
+        if (btn) {
+            btn.style.cursor = show ? 'default' : '';
+            // remove disabled in edit mode so inputs are reachable
+            if (show) btn.classList.remove('disabled');
+        }
+    });
+}
+
+function updateTemplateName(i, val) {
+    templates[i].name = val;
+    saveTemplates();
+    // update label inline without full rebuild
+    const nameEl = document.querySelector(`#tpl-${i} .tpl-name`);
+    if (nameEl) nameEl.textContent = val;
+}
+
+function updateTemplateSize(i, key, val) {
+    const v = parseFloat(val);
+    if (isNaN(v) || v <= 0) return;
+    templates[i][key] = round2(v);
+    saveTemplates();
+    // update dims label + preview rect inline
+    const dimsEl = document.querySelector(`#tpl-${i} .tpl-dims`);
+    if (dimsEl) dimsEl.textContent = `${templates[i].w} × ${templates[i].h}%`;
+    const maxD = Math.max(templates[i].w, templates[i].h);
+    const rx = Math.max(4, Math.round(templates[i].w / maxD * 34));
+    const ry = Math.max(3, Math.round(templates[i].h / maxD * 22));
+    const rectEl = document.querySelector(`#tpl-${i} .tpl-rect`);
+    if (rectEl) { rectEl.style.width = rx+'px'; rectEl.style.height = ry+'px'; }
+}
+
+function applyTemplate(i) {
+    if (!selectedMarker) return;
+    const tpl = templates[i];
+    selectedMarker.w = tpl.w;
+    selectedMarker.h = tpl.h;
+    positionMarkerEl(selectedMarker.el, selectedMarker);
+    openEditorForm(selectedMarker);
+    updatePartDataFromMarkers(selectedMarker.partIndex);
+    renderOutput();
+    // flash feedback
+    const btn = document.getElementById(`tpl-${i}`);
+    if (btn) {
+        btn.classList.add('applied');
+        setTimeout(() => btn.classList.remove('applied'), 400);
+    }
+    showToast(`ШАБЛОН ${tpl.name.toUpperCase()} ПРИМЕНЁН`);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+const viewport   = document.getElementById('viewport');
+const imgWrapper = document.getElementById('imgWrapper');
+const mainImg    = document.getElementById('mainImg');
+const addGhost   = document.getElementById('addGhost');
+
+function init() {
+    buildSectionList();
+    setupViewportEvents();
+    buildTemplatesGrid();
+}
+
+// ═══════════════════════════════════════════════
+// SECTION LIST
+// ═══════════════════════════════════════════════
+function buildSectionList() {
+    const list = document.getElementById('sectionList');
+    list.innerHTML = '';
+    motorcycleData.sections.forEach((sec, i) => {
+        const div = document.createElement('div');
+        div.className = 'section-item';
+        div.innerHTML = `<span class="s-idx">${String(i+1).padStart(2,'0')}</span>${sec.title}`;
+        div.onclick = () => selectSection(i);
+        list.appendChild(div);
+    });
+}
+
+function selectSection(idx) {
+    currentSectionIndex = idx;
+    currentSection = motorcycleData.sections[idx];
+
+    document.querySelectorAll('.section-item').forEach((el,i) => {
+        el.classList.toggle('active', i === idx);
+    });
+
+    // reset add mode
+    exitAddMode();
+
+    // load image
+    mainImg.src = `images/${currentSection.img}`;
+    mainImg.onload = () => {
+        fitToScreen();
+        buildMarkers();
+        buildPartsList();
+        renderOutput();
+        document.getElementById('modeHint').textContent = currentSection.title;
+    };
+    mainImg.onerror = () => {
+        // no image available — still show markers tool
+        mainImg.style.display = 'none';
+        buildMarkers();
+        buildPartsList();
+        renderOutput();
+    };
+
+    clearEditorForm();
+}
+
+// ═══════════════════════════════════════════════
+// MARKERS (build from section data)
+// ═══════════════════════════════════════════════
+function buildMarkers() {
+    // clear existing
+    document.querySelectorAll('.marker').forEach(el => el.remove());
+    markers = [];
+    selectedMarker = null;
+
+    if (!currentSection) return;
+
+    currentSection.parts.forEach((part, pi) => {
+        if (!part.pos) return;
+
+        // normalize to array-of-arrays
+        const positions = Array.isArray(part.pos[0]) ? part.pos : [part.pos];
+
+        positions.forEach((pos, mi) => {
+            if (mi >= MAX_MARKERS) return;
+            if (pos[0] === 50 && pos[1] === 50) return; // placeholder skip
+
+            const sz = part.size || [DEFAULT_W, DEFAULT_H];
+            const m = { partIndex: pi, markerIndex: mi, x: pos[0], y: pos[1], w: sz[0], h: sz[1], el: null };
+            m.el = createMarkerEl(m);
+            markers.push(m);
+        });
+    });
+}
+
+function createMarkerEl(m) {
+    const el = document.createElement('div');
+    el.className = 'marker';
+    el.dataset.mid = markers.length; // temp, re-index after push
+
+    const idx = document.createElement('div');
+    idx.className = 'marker-idx';
+    idx.textContent = m.markerIndex + 1;
+    el.appendChild(idx);
+
+    const rh = document.createElement('div');
+    rh.className = 'resize-handle';
+    el.appendChild(rh);
+
+    positionMarkerEl(el, m);
+
+    el.addEventListener('mousedown', e => {
+        if (e.target === rh) {
+            e.stopPropagation(); e.preventDefault();
+            startResize(e, m);
+        } else {
+            e.stopPropagation();
+            if (isAddMode) return;
+            startDragMarker(e, m);
+            selectMarker(m);
+        }
+    });
+
+    imgWrapper.appendChild(el);
+    return el;
+}
+
+function positionMarkerEl(el, m) {
+    const iw = mainImg.naturalWidth || 800;
+    const ih = mainImg.naturalHeight || 600;
+    el.style.left   = (m.x / 100 * iw) + 'px';
+    el.style.top    = (m.y / 100 * ih) + 'px';
+    el.style.width  = (m.w / 100 * iw) + 'px';
+    el.style.height = (m.h / 100 * ih) + 'px';
+    el.style.marginLeft = (-m.w / 100 * iw / 2) + 'px';
+    el.style.marginTop  = (-m.h / 100 * ih / 2) + 'px';
+}
+
+function selectMarker(m) {
+    // deselect all
+    markers.forEach(mm => mm.el && mm.el.classList.remove('selected'));
+    selectedMarker = m;
+    if (m && m.el) m.el.classList.add('selected');
+    openEditorForm(m);
+    // highlight part row
+    highlightPartRow(m ? m.partIndex : -1);
+    buildPartsList();
+    buildTemplatesGrid();
+}
+
+function highlightPartRow(pi) {
+    document.querySelectorAll('.part-item').forEach((el, i) => {
+        el.classList.toggle('active', i === pi);
+        if (i === pi) el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    });
+}
+
+// ═══════════════════════════════════════════════
+// PARTS LIST (right panel)
+// ═══════════════════════════════════════════════
+function buildPartsList() {
+    const list = document.getElementById('partsList');
+    list.innerHTML = '';
+    if (!currentSection) {
+        list.innerHTML = '<div class="no-section"><div class="ns-icon">⬡</div><div>Выберите раздел</div></div>';
+        return;
+    }
+
+    currentSection.parts.forEach((part, pi) => {
+        const div = document.createElement('div');
+        div.className = 'part-item';
+        if (selectedMarker && selectedMarker.partIndex === pi) div.classList.add('active');
+
+        const partMarkers = markers.filter(m => m.partIndex === pi);
+        const filledCount = partMarkers.length;
+
+        div.innerHTML = `
+            <div class="part-ref">${part.ref || ''}</div>
+            <div class="part-desc">${part.desc}</div>
+            <div class="marker-slots" id="slots-${pi}"></div>
+        `;
+
+        const slotsDiv = div.querySelector(`#slots-${pi}`);
+
+        for (let slot = 0; slot < MAX_MARKERS; slot++) {
+            const existing = partMarkers.find(m => m.markerIndex === slot);
+            const dotEl = document.createElement('div');
+            dotEl.className = 'slot-dot ' + (existing ? 'filled' : 'empty');
+            const n = document.createElement('span');
+            n.className = 'dot-n';
+            n.textContent = slot + 1;
+            dotEl.appendChild(n);
+
+            if (existing) {
+                dotEl.title = `Метка ${slot+1}: (${existing.x.toFixed(1)}%, ${existing.y.toFixed(1)}%)  — нажмите чтобы выбрать или ПКМ чтобы удалить`;
+                dotEl.onclick = e => { e.stopPropagation(); selectMarker(existing); };
+                dotEl.oncontextmenu = e => { e.preventDefault(); e.stopPropagation(); removeMarker(existing); };
+            } else {
+                dotEl.title = `Добавить метку ${slot+1} для ${part.desc}`;
+                dotEl.onclick = e => {
+                    e.stopPropagation();
+                    if (filledCount >= MAX_MARKERS) return;
+                    startAddMarker(pi, slot);
+                };
+            }
+            slotsDiv.appendChild(dotEl);
+        }
+
+        div.onclick = () => {
+            // click on part row — select its first marker if any
+            const first = markers.find(m => m.partIndex === pi);
+            if (first) selectMarker(first);
+        };
+
+        list.appendChild(div);
+    });
+}
+
+// ═══════════════════════════════════════════════
+// ADD MODE
+// ═══════════════════════════════════════════════
+function startAddMarker(partIndex, slot) {
+    addTargetPart = partIndex;
+    addSlot = slot;
+    isAddMode = true;
+    viewport.classList.add('adding');
+    document.getElementById('btnAddMode').textContent = '✕ Отмена';
+    document.getElementById('btnAddMode').classList.add('danger');
+    document.getElementById('modeHint').textContent = `Клик на схеме → добавить метку ${slot+1} для "${currentSection.parts[partIndex].desc}"`;
+    addGhost.style.display = 'none';
+}
+
+function toggleAddMode() {
+    if (isAddMode) exitAddMode();
+    // else: user must click a slot dot
+}
+
+function exitAddMode() {
+    isAddMode = false;
+    addTargetPart = null;
+    addSlot = null;
+    viewport.classList.remove('adding');
+    document.getElementById('btnAddMode').textContent = '＋ Добавить метку';
+    document.getElementById('btnAddMode').classList.remove('danger');
+    addGhost.style.display = 'none';
+}
+
+function placeNewMarker(xPct, yPct) {
+    const pi = addTargetPart;
+    const slot = addSlot;
+    const part = currentSection.parts[pi];
+    const sz = part.size || [DEFAULT_W, DEFAULT_H];
+
+    const newM = {
+        partIndex: pi,
+        markerIndex: slot,
+        x: xPct, y: yPct,
+        w: sz[0], h: sz[1],
+        el: null
+    };
+
+    markers.push(newM);
+    newM.el = createMarkerEl(newM);
+
+    // update data in-place
+    updatePartDataFromMarkers(pi);
+
+    exitAddMode();
+    selectMarker(newM);
+    buildPartsList();
+    renderOutput();
+}
+
+// ═══════════════════════════════════════════════
+// REMOVE MARKER
+// ═══════════════════════════════════════════════
+function removeMarker(m) {
+    if (m.el) m.el.remove();
+    const idx = markers.indexOf(m);
+    if (idx !== -1) markers.splice(idx, 1);
+
+    if (selectedMarker === m) {
+        selectedMarker = null;
+        clearEditorForm();
+    }
+    updatePartDataFromMarkers(m.partIndex);
+    buildPartsList();
+    renderOutput();
+}
+
+function deleteSelectedMarker() {
+    if (selectedMarker) removeMarker(selectedMarker);
+}
+
+// ═══════════════════════════════════════════════
+// EDITOR FORM
+// ═══════════════════════════════════════════════
+function openEditorForm(m) {
+    const form = document.getElementById('editorForm');
+    if (!m) { form.classList.add('hidden'); return; }
+    form.classList.remove('hidden');
+    document.getElementById('editorTitle').textContent = `МЕТКА ${m.markerIndex+1} · ${currentSection.parts[m.partIndex].ref || ''}`;
+    document.getElementById('inX').value = m.x.toFixed(2);
+    document.getElementById('inY').value = m.y.toFixed(2);
+    document.getElementById('inW').value = m.w.toFixed(2);
+    document.getElementById('inH').value = m.h.toFixed(2);
+}
+
+function clearEditorForm() {
+    document.getElementById('editorForm').classList.add('hidden');
+}
+
+function closeEditor() {
+    markers.forEach(mm => mm.el && mm.el.classList.remove('selected'));
+    selectedMarker = null;
+    clearEditorForm();
+    buildPartsList();
+    buildTemplatesGrid();
+}
+
+function applyEditorLive() {
+    if (!selectedMarker) return;
+    const x = parseFloat(document.getElementById('inX').value);
+    const y = parseFloat(document.getElementById('inY').value);
+    const w = parseFloat(document.getElementById('inW').value);
+    const h = parseFloat(document.getElementById('inH').value);
+    if (isNaN(x)||isNaN(y)||isNaN(w)||isNaN(h)) return;
+    selectedMarker.x = clamp(x, 0, 100);
+    selectedMarker.y = clamp(y, 0, 100);
+    selectedMarker.w = clamp(w, 0.1, 100);
+    selectedMarker.h = clamp(h, 0.1, 100);
+    positionMarkerEl(selectedMarker.el, selectedMarker);
+    updatePartDataFromMarkers(selectedMarker.partIndex);
+    renderOutput();
+}
+
+// ═══════════════════════════════════════════════
+// DRAG MARKER
+// ═══════════════════════════════════════════════
+function startDragMarker(e, m) {
+    isDraggingMarker = true;
+    dragMarker = m;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartMX = m.x;
+    dragStartMY = m.y;
+}
+
+// ═══════════════════════════════════════════════
+// RESIZE MARKER
+// ═══════════════════════════════════════════════
+function startResize(e, m) {
+    isResizing = true;
+    resizeMarker = m;
+    resizeStartX = e.clientX;
+    resizeStartY = e.clientY;
+    resizeStartW = m.w;
+    resizeStartH = m.h;
+}
+
+// ═══════════════════════════════════════════════
+// VIEWPORT EVENTS
+// ═══════════════════════════════════════════════
+function setupViewportEvents() {
+    viewport.addEventListener('mousedown', onViewportMouseDown);
+    window.addEventListener('mousemove', onWindowMouseMove);
+    window.addEventListener('mouseup', onWindowMouseUp);
+    viewport.addEventListener('wheel', onViewportWheel, { passive: false });
+
+    // touch for mobile
+    viewport.addEventListener('touchstart', onTouchStart, { passive: false });
+    viewport.addEventListener('touchmove', onTouchMove, { passive: false });
+    viewport.addEventListener('touchend', onTouchEnd);
+
+    // ESC
+    window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') exitAddMode();
+        if (e.key === 'Delete' && selectedMarker) deleteSelectedMarker();
+    });
+}
+
+function onViewportMouseDown(e) {
+    if (e.button !== 0) return;
+    if (isResizing || isDraggingMarker) return;
+
+    if (isAddMode && currentSection) {
+        // place marker
+        const coords = viewportToImage(e.clientX, e.clientY);
+        placeNewMarker(coords.x, coords.y);
+        return;
+    }
+
+    // start pan
+    isPanning = true;
+    panStartX = e.clientX - tx;
+    panStartY = e.clientY - ty;
+    viewport.classList.add('dragging');
+}
+
+function onWindowMouseMove(e) {
+    if (isResizing && resizeMarker) {
+        const dx = e.clientX - resizeStartX;
+        const dy = e.clientY - resizeStartY;
+        const iw = mainImg.naturalWidth || 800;
+        const ih = mainImg.naturalHeight || 600;
+        const dwPct = (dx / scale) / iw * 100;
+        const dhPct = (dy / scale) / ih * 100;
+        resizeMarker.w = clamp(resizeStartW + dwPct, 0.3, 80);
+        resizeMarker.h = clamp(resizeStartH + dhPct, 0.3, 80);
+        positionMarkerEl(resizeMarker.el, resizeMarker);
+        openEditorForm(resizeMarker);
+        updatePartDataFromMarkers(resizeMarker.partIndex);
+        renderOutput();
+        return;
+    }
+
+    if (isDraggingMarker && dragMarker) {
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        const iw = mainImg.naturalWidth || 800;
+        const ih = mainImg.naturalHeight || 600;
+        dragMarker.x = clamp(dragStartMX + (dx / scale) / iw * 100, 0, 100);
+        dragMarker.y = clamp(dragStartMY + (dy / scale) / ih * 100, 0, 100);
+        positionMarkerEl(dragMarker.el, dragMarker);
+        openEditorForm(dragMarker);
+        updatePartDataFromMarkers(dragMarker.partIndex);
+        renderOutput();
+        return;
+    }
+
+    // show ghost in add mode
+    if (isAddMode && currentSection) {
+        const coords = viewportToImage(e.clientX, e.clientY);
+        const iw = mainImg.naturalWidth || 800;
+        const ih = mainImg.naturalHeight || 600;
+        const w = DEFAULT_W, h = DEFAULT_H;
+        const px = coords.xPx - w/100*iw/2;
+        const py = coords.yPx - h/100*ih/2;
+        addGhost.style.cssText = `display:block;left:${px}px;top:${py}px;width:${w/100*iw}px;height:${h/100*ih}px;`;
+        return;
+    }
+
+    if (isPanning) {
+        tx = e.clientX - panStartX;
+        ty = e.clientY - panStartY;
+        applyTransform();
+    }
+}
+
+function onWindowMouseUp(e) {
+    if (isResizing) {
+        isResizing = false;
+        resizeMarker = null;
+        renderOutput();
+    }
+    if (isDraggingMarker) {
+        isDraggingMarker = false;
+        buildPartsList();
+        dragMarker = null;
+    }
+    isPanning = false;
+    viewport.classList.remove('dragging');
+}
+
+function onViewportWheel(e) {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const imgX = (mx - tx) / scale;
+    const imgY = (my - ty) / scale;
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    scale = clamp(scale + delta, 0.05, 8);
+    tx = mx - imgX * scale;
+    ty = my - imgY * scale;
+    applyTransform();
+}
+
+// touch
+let lastTouchDist = null;
+function onTouchStart(e) {
+    if (e.touches.length === 1) {
+        isPanning = true;
+        panStartX = e.touches[0].clientX - tx;
+        panStartY = e.touches[0].clientY - ty;
+    }
+    if (e.touches.length === 2) {
+        lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+}
+function onTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 1 && isPanning) {
+        tx = e.touches[0].clientX - panStartX;
+        ty = e.touches[0].clientY - panStartY;
+        applyTransform();
+    }
+    if (e.touches.length === 2 && lastTouchDist) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        scale = clamp(scale * (dist / lastTouchDist), 0.05, 8);
+        lastTouchDist = dist;
+        applyTransform();
+    }
+}
+function onTouchEnd() { isPanning = false; lastTouchDist = null; }
+
+// ═══════════════════════════════════════════════
+// TRANSFORM
+// ═══════════════════════════════════════════════
+function applyTransform() {
+    imgWrapper.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+    document.getElementById('zoomLabel').textContent = Math.round(scale*100) + '%';
+}
+
+function fitToScreen() {
+    if (!mainImg.naturalWidth) return;
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    const s = Math.min((vw-20)/mainImg.naturalWidth, (vh-20)/mainImg.naturalHeight, 1);
+    scale = s;
+    tx = (vw - mainImg.naturalWidth*s) / 2;
+    ty = (vh - mainImg.naturalHeight*s) / 2;
+    applyTransform();
+}
+
+function changeZoom(delta) {
+    const cx = viewport.clientWidth/2, cy = viewport.clientHeight/2;
+    const imgX = (cx - tx)/scale, imgY = (cy - ty)/scale;
+    scale = clamp(scale + delta, 0.05, 8);
+    tx = cx - imgX*scale; ty = cy - imgY*scale;
+    applyTransform();
+}
+
+function viewportToImage(clientX, clientY) {
+    const rect = viewport.getBoundingClientRect();
+    const vx = clientX - rect.left, vy = clientY - rect.top;
+    const xPx = (vx - tx) / scale;
+    const yPx = (vy - ty) / scale;
+    const iw = mainImg.naturalWidth || 800;
+    const ih = mainImg.naturalHeight || 600;
+    return { x: xPx/iw*100, y: yPx/ih*100, xPx, yPx };
+}
+
+// ═══════════════════════════════════════════════
+// WRITE BACK TO DATA
+// ═══════════════════════════════════════════════
+function updatePartDataFromMarkers(pi) {
+    const part = currentSection.parts[pi];
+    const partMarkers = markers.filter(m => m.partIndex === pi).sort((a,b) => a.markerIndex - b.markerIndex);
+
+    if (partMarkers.length === 0) {
+        // no markers — leave pos as-is or set placeholder
+        // leave unchanged
+        return;
+    }
+
+    // Determine if all sizes are the same
+    const firstW = partMarkers[0].w, firstH = partMarkers[0].h;
+    const allSameSize = partMarkers.every(m => Math.abs(m.w - firstW) < 0.01 && Math.abs(m.h - firstH) < 0.01);
+
+    if (partMarkers.length === 1) {
+        part.pos = [round2(partMarkers[0].x), round2(partMarkers[0].y)];
+    } else {
+        part.pos = partMarkers.map(m => [round2(m.x), round2(m.y)]);
+    }
+
+    if (allSameSize && !(Math.abs(firstW - DEFAULT_W) < 0.01 && Math.abs(firstH - DEFAULT_H) < 0.01)) {
+        part.size = [round2(firstW), round2(firstH)];
+    } else if (!allSameSize) {
+        // store per-marker sizes — extended format
+        // (app uses first size or part.size so store part.size from first)
+        part.size = [round2(firstW), round2(firstH)];
+    }
+}
+
+// ═══════════════════════════════════════════════
+// OUTPUT / EXPORT
+// ═══════════════════════════════════════════════
+function renderOutput() {
+    if (!currentSection) return;
+    const sec = currentSection;
+    let lines = [];
+    sec.parts.forEach(part => {
+        let posStr;
+        if (!part.pos) {
+            posStr = 'null';
+        } else if (Array.isArray(part.pos[0])) {
+            posStr = '[' + part.pos.map(p => `[${p[0]}, ${p[1]}]`).join(', ') + ']';
+        } else {
+            posStr = `[${part.pos[0]}, ${part.pos[1]}]`;
+        }
+        let sizeStr = part.size ? `, size: [${part.size[0]}, ${part.size[1]}]` : '';
+        lines.push(`{ ref: "${part.ref}", code: "${part.code}", desc: "${part.desc}", qty: ${part.qty}, pos: ${posStr}${sizeStr} }`);
+    });
+    document.getElementById('outputCode').textContent = lines.join(',\n');
+}
+
+function copyOutput() {
+    const text = document.getElementById('outputCode').textContent;
+    navigator.clipboard.writeText(text).then(() => showToast('СКОПИРОВАНО'));
+}
+
+function copyAllOutput() {
+    // Serialize entire motorcycleData back to JS
+    let js = 'const motorcycleData = {\n    model: "' + motorcycleData.model + '",\n    sections: [\n';
+    js += motorcycleData.sections.map(sec => {
+        let parts = sec.parts.map(part => {
+            let posStr;
+            if (!part.pos) posStr = 'null';
+            else if (Array.isArray(part.pos[0])) posStr = '[' + part.pos.map(p => `[${p[0]}, ${p[1]}]`).join(', ') + ']';
+            else posStr = `[${part.pos[0]}, ${part.pos[1]}]`;
+            let sizeStr = part.size ? `, size: [${part.size[0]}, ${part.size[1]}]` : '';
+            return `        { ref: "${part.ref}", code: "${part.code}", desc: "${part.desc}", qty: ${part.qty}, pos: ${posStr}${sizeStr} }`;
+        }).join(',\n');
+        return `{\n    title: "${sec.title}",\n    img: "${sec.img}",\n    parts: [\n${parts}\n    ]\n}`;
+    }).join(',\n');
+    js += '\n]};\n';
+    navigator.clipboard.writeText(js).then(() => showToast('ВСЕ ДАННЫЕ СКОПИРОВАНЫ'));
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function round2(v) { return Math.round(v * 100) / 100; }
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+// ═══════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>

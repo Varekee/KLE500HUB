@@ -1,0 +1,3987 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kawasaki KLE500SE 2026 EPC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Anti-FOUC: apply theme before paint to prevent flash -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('kleTheme');
+            if (t && t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <style>
+
+        /* ========================= THEMES ========================= */
+        :root {
+            --green: #00d068;
+            --green-dim: rgba(0, 208, 104, 0.15);
+            --green-glow: rgba(0, 208, 104, 0.4);
+            --bg: #0c0c0e;
+            --card: #111114;
+            --text: #d8dce8;
+            --text-dim: #565b6e;
+            --sidebar-bg: #080809;
+            --sidebar-border: #1c1c22;
+            --menu-item-color: #5a6070;
+            --menu-hover-bg: #13131a;
+            --menu-active-bg: #141520;
+            --search-bg: #080809;
+            --search-border: #1e1e28;
+            --table-header-bg: #0f0f14;
+            --table-border: #181820;
+            --table-cell-color: #a0a8bc;
+            --preview-bg: #0a0a0f;
+            --preview-border: #2a2a3a;
+            --minimap-bg: #08080d;
+            --part-code-bg: #050508;
+            --part-code-color: #00d068;
+            --viewport-bg: #f0f0f0;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1f14 0%, #0c0c0e 60%);
+            --scan-line: rgba(0,208,104,0.03);
+        }
+
+        [data-theme="oem-green"] {
+            --green: #5dca6a;
+            --green-dim: rgba(93,202,106,0.12);
+            --green-glow: rgba(93,202,106,0.35);
+            --bg: #07130a;
+            --card: #0a1a0d;
+            --text: #c8e8cc;
+            --text-dim: #3d6645;
+            --sidebar-bg: #050e07;
+            --sidebar-border: #1a3020;
+            --menu-item-color: #4a7a52;
+            --menu-hover-bg: #0e1f12;
+            --menu-active-bg: #101f14;
+            --search-bg: #050e07;
+            --search-border: #1a3020;
+            --table-header-bg: #0a1a0d;
+            --table-border: #12251a;
+            --table-cell-color: #90b898;
+            --preview-bg: #07130a;
+            --preview-border: #2a5033;
+            --minimap-bg: #07130a;
+            --part-code-bg: #050e07;
+            --part-code-color: #7fff84;
+            --viewport-bg: #f0fff2;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0e2015 0%, #07130a 60%);
+        }
+
+        [data-theme="blueprint"] {
+            --green: #4fc3f7;
+            --green-dim: rgba(79,195,247,0.12);
+            --green-glow: rgba(79,195,247,0.35);
+            --bg: #060e1a;
+            --card: #080f1e;
+            --text: #b8d4f0;
+            --text-dim: #2a4a6a;
+            --sidebar-bg: #040a14;
+            --sidebar-border: #0f2040;
+            --menu-item-color: #2a5070;
+            --menu-hover-bg: #0a1628;
+            --menu-active-bg: #0a1a30;
+            --search-bg: #040a14;
+            --search-border: #0f2040;
+            --table-header-bg: #08102a;
+            --table-border: #0d1a32;
+            --table-cell-color: #7aa8cc;
+            --preview-bg: #060e1a;
+            --preview-border: #1a3a6a;
+            --minimap-bg: #060e1a;
+            --part-code-bg: #040a14;
+            --part-code-color: #7ecfff;
+            --viewport-bg: #e8f4fd;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #0d1e38 0%, #060e1a 60%);
+        }
+
+        [data-theme="light"] {
+            --green: #0d7a3a;
+            --green-dim: rgba(13,122,58,0.08);
+            --green-glow: rgba(13,122,58,0.25);
+            --bg: #eeede8;
+            --card: #f8f7f2;
+            --text: #1a1c22;
+            --text-dim: #9a9ea8;
+            --sidebar-bg: #e4e3de;
+            --sidebar-border: #d0cfc8;
+            --menu-item-color: #6a6e78;
+            --menu-hover-bg: #dddcd6;
+            --menu-active-bg: #f8f7f2;
+            --search-bg: #f8f7f2;
+            --search-border: #d0cfc8;
+            --table-header-bg: #f0efe8;
+            --table-border: #e0dfd8;
+            --table-cell-color: #3a3c44;
+            --preview-bg: #f8f7f2;
+            --preview-border: #c0c0b8;
+            --minimap-bg: #f0efe8;
+            --part-code-bg: #f0f0e8;
+            --part-code-color: #0d7a3a;
+            --viewport-bg: #ffffff;
+            --home-gradient: radial-gradient(ellipse at 30% 0%, #dde8e0 0%, #eeede8 60%);
+        }
+
+
+        /* Language switcher */
+        #langSwitcher {
+            display: flex;
+            gap: 4px;
+            padding: 0 12px 10px;
+            flex-shrink: 0;
+        }
+        .lang-btn {
+            flex: 1;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            padding: 5px 0;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .lang-btn:hover { border-color: var(--green); color: var(--green); }
+        .lang-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        /* Doc buttons group */
+        .menu-doc-btns {
+            margin-left: auto;
+            display: flex;
+            gap: 3px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+        .menu-doc-btn {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 5px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            color: var(--text-dim);
+            opacity: 0.5;
+            transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+            text-decoration: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .menu-item:hover .menu-doc-btn,
+        .menu-item.active .menu-doc-btn { opacity: 1; }
+        .menu-doc-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-dim);
+            opacity: 1;
+        }
+        .menu-doc-btn svg {
+            width: 9px; height: 9px;
+            stroke: currentColor; fill: none;
+            stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        /* ========================= BASE ========================= */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Barlow', 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        /* Scan lines overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                var(--scan-line) 0px,
+                var(--scan-line) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* ========================= SIDEBAR ========================= */
+        #sidebar {
+            width: 320px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        /* Vertical accent line */
+        #sidebar::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                var(--green) 20%,
+                var(--green) 80%,
+                transparent 100%
+            );
+            opacity: 0.35;
+        }
+
+        /* ========================= HEADER ========================= */
+        .header {
+            padding: 0;
+            background: transparent;
+            border-bottom: 1px solid var(--sidebar-border);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .header a {
+            display: flex;
+            flex-direction: column;
+            padding: 16px 16px 14px;
+            text-decoration: none;
+            color: var(--text) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header a::before {
+            content: 'EPC';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--green);
+            opacity: 0.6;
+        }
+        @media (max-width: 768px) {
+            .header a::before { display: none; }
+            .header a { padding-right: 52px; }
+        }
+
+        .header-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .header-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        /* ========================= PINNED FAVORITES ========================= */
+        #favPinned {
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--sidebar-border);
+            position: relative;
+        }
+
+        /* Subtle top separator glow */
+        #favPinned::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 0%, var(--green) 40%, var(--green) 60%, transparent 100%);
+            opacity: 0.18;
+        }
+
+        /* Bottom separator glow */
+        #favPinned::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 0%, var(--green) 40%, var(--green) 60%, transparent 100%);
+            opacity: 0.22;
+        }
+
+        .fav-pinned-item {
+            padding: 11px 16px 11px 18px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            position: relative;
+            transition: background 0.15s ease;
+            background: rgba(0,208,104,0.04);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .fav-pinned-item:hover {
+            background: var(--green-dim);
+        }
+
+        /* Left accent bar */
+        .fav-pinned-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 2px;
+            background: var(--green);
+            opacity: 0.5;
+        }
+
+        .fav-pinned-item.active {
+            background: var(--green-dim);
+        }
+
+        .fav-pinned-item.active::before {
+            opacity: 1;
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .fav-pinned-icon {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            opacity: 0.85;
+        }
+
+        .fav-pinned-label {
+            flex-grow: 1;
+        }
+
+        /* Badge with favorites count */
+        .fav-pinned-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,208,104,0.25);
+            color: var(--green);
+            transition: all 0.2s;
+        }
+
+        .fav-pinned-badge.has-items {
+            background: var(--green);
+            color: #000;
+            border-color: transparent;
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        /* PIN label - визуальная подсказка что элемент закреплён */
+        .fav-pinned-pin {
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: var(--green);
+            opacity: 0.45;
+            font-family: 'IBM Plex Mono', monospace;
+            flex-shrink: 0;
+        }
+
+        /* ========================= MENU ========================= */
+        #menu {
+            overflow-y: auto;
+            flex-grow: 1;
+            scroll-behavior: smooth;
+        }
+
+        #menu::-webkit-scrollbar { width: 3px; }
+        #menu::-webkit-scrollbar-track { background: transparent; }
+        #menu::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 2px; }
+        #menu::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+        .menu-item {
+            padding: 12px 16px 12px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--sidebar-border);
+            font-size: 12.5px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: var(--menu-item-color);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .menu-item .menu-idx {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--text-dim);
+            min-width: 20px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+
+        .menu-item:hover {
+            background: var(--menu-hover-bg);
+            color: var(--green);
+            padding-left: 20px;
+        }
+
+        .menu-item:hover .menu-idx { color: var(--green); opacity: 0.6; }
+
+        .menu-item.active {
+            background: var(--menu-active-bg);
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .menu-item.active .menu-idx { color: var(--green); }
+
+        /* ========================= THEME SWITCHER ========================= */
+        #themeSwitcher {
+            padding: 10px 12px;
+            border-top: 1px solid var(--sidebar-border);
+            background: var(--sidebar-bg);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .theme-switcher-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+
+        .theme-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid var(--sidebar-border);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .theme-btn:hover { border-color: var(--green); transform: scale(1.15); }
+
+        .theme-btn.active {
+            border-color: var(--green);
+            box-shadow: 0 0 6px var(--green-glow);
+        }
+
+        .theme-btn.active::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 1px;
+            background: var(--green);
+        }
+
+        .theme-btn[data-theme="dark"]      { background: #0c0c0e; }
+        .theme-btn[data-theme="oem-green"] { background: #07130a; }
+        .theme-btn[data-theme="blueprint"] { background: #060e1a; }
+        .theme-btn[data-theme="light"]     { background: #eeede8; }
+
+        /* ========================= MENU PREVIEW ========================= */
+        #menuPreview {
+            position: fixed;
+            left: 328px;
+            pointer-events: none;
+            z-index: 9999;
+            background: var(--preview-bg);
+            border: 1px solid var(--preview-border);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.8),
+                0 0 0 1px rgba(255,255,255,0.04);
+            opacity: 0;
+            transform: translateX(-6px) scale(0.97);
+            transition: opacity 0.16s ease, transform 0.16s ease;
+            width: 210px;
+        }
+
+        #menuPreview.visible {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        @media (max-width: 768px) {
+            #menuPreview {
+                left: 50% !important;
+                transform: translateX(-50%) scale(0.97);
+                width: calc(100vw - 48px);
+                max-width: 320px;
+                display: none !important;
+            }
+            #menuPreview.visible {
+                display: none !important;
+            }
+        }
+
+        #menuPreview img {
+            width: 100%;
+            border-radius: 4px;
+            display: block;
+            background: #fff;
+        }
+
+        #menuPreview .preview-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* ========================= TOAST ========================= */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            background: var(--green);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            letter-spacing: 3px;
+            font-size: 11px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px var(--green-glow);
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ========================= MAIN LAYOUT ========================= */
+        #main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .content-wrapper {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+            box-sizing: border-box;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        /* ========================= SEARCH ========================= */
+        .search-container {
+            position: relative;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .search-container::before {
+            content: '⌕';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 17px;
+            color: var(--text-dim);
+            pointer-events: none;
+            z-index: 2;
+            transition: color 0.2s;
+        }
+
+        .search-container:focus-within::before {
+            color: var(--green);
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 11px 14px 11px 40px;
+            background: var(--search-bg);
+            border: 1px solid var(--search-border);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #searchInput::placeholder {
+            color: var(--text-dim);
+            font-weight: 300;
+        }
+
+        #searchInput:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim), inset 0 0 0 1px var(--green-dim);
+        }
+
+        #searchResults {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--card);
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--preview-border);
+            border-radius: 6px;
+            display: none;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+        }
+
+        .search-res-item {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--table-border);
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.12s;
+        }
+
+        .search-res-item:hover { background: var(--menu-hover-bg); }
+        .search-res-item b { color: var(--green); font-weight: 600; }
+
+        /* Крестик очистки поиска */
+        #searchClear {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px; height: 20px;
+            align-items: center; justify-content: center;
+            border: none; background: transparent;
+            color: var(--text-dim); cursor: pointer;
+            font-size: 14px; line-height: 1;
+            border-radius: 3px;
+            transition: color 0.15s, background 0.15s;
+            z-index: 2;
+        }
+        #searchClear:hover { color: var(--text); background: var(--menu-hover-bg); }
+        #searchClear.visible { display: flex; }
+        /* Отступ справа у input когда крестик видимый */
+        #searchInput.has-value { padding-right: 36px; }
+
+
+        /* ========================= PART PREVIEW POPUP ========================= */
+        #partPopup {
+            position: fixed;
+            z-index: 9998;
+            width: 280px;
+            background: var(--card);
+            border: 1px solid var(--preview-border);
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.75);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        #partPopup.visible {
+            display: flex;
+            pointer-events: all;
+        }
+
+        .pp-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 12px 14px 8px;
+            border-bottom: 1px solid var(--table-border);
+            gap: 8px;
+        }
+        .pp-code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+        .pp-code:hover { opacity: 0.7; }
+        .pp-section {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            text-align: right;
+            line-height: 1.4;
+            min-width: 0;
+        }
+        .pp-desc {
+            padding: 10px 14px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.35;
+            border-bottom: 1px solid var(--table-border);
+        }
+        .pp-meta {
+            display: flex;
+            gap: 12px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--table-border);
+        }
+        .pp-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .pp-meta-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 7.5px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .pp-meta-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .pp-actions {
+            display: flex;
+            gap: 6px;
+            padding: 10px 14px;
+        }
+        .pp-btn {
+            flex: 1;
+            padding: 7px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--sidebar-border);
+            background: transparent;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .pp-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-dim);
+        }
+        .pp-btn.fav-active {
+            border-color: gold;
+            color: gold;
+            background: rgba(255,215,0,0.08);
+        }
+        .pp-btn-goto {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-dim);
+        }
+        .pp-btn-goto:hover {
+            background: var(--green);
+            color: #000;
+        }
+        .pp-close {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; background: transparent;
+            color: var(--text-dim); cursor: pointer;
+            font-size: 14px; line-height: 1;
+            border-radius: 3px;
+            transition: color 0.15s, background 0.15s;
+        }
+        .pp-close:hover { color: var(--text); background: var(--menu-hover-bg); }
+
+        /* ========================= WORKSPACE ========================= */
+        .workspace {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            overflow: hidden;
+            min-height: 0;
+            background: var(--card);
+            border-radius: 6px;
+            border: 1px solid var(--sidebar-border);
+        }
+
+        /* ========================= VIEWPORT COLUMN ========================= */
+        .viewport-column {
+            position: relative;
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--sidebar-border);
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .zoom-btn {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--sidebar-border);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            transition: all 0.15s;
+        }
+
+        .zoom-btn:hover {
+            background: var(--green-dim);
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        #zoomVal {
+            margin-left: 8px;
+            color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========================= VIEWPORT BOX ========================= */
+        .viewport-box {
+            position: relative;
+            flex-grow: 1;
+            background: var(--viewport-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--sidebar-border);
+            cursor: grab;
+        }
+
+        .img-wrapper {
+            position: absolute;
+            transform-origin: 0 0;
+            transition: transform 0.05s linear;
+        }
+
+        #mainImg {
+            display: block;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        /* ========================= MINIMAP ========================= */
+        #miniMap {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 200px;
+            height: 128px;
+            background: var(--minimap-bg);
+            border: 1px solid var(--preview-border);
+            border-radius: 6px;
+            overflow: hidden;
+            z-index: 1000;
+            box-shadow:
+                0 8px 32px rgba(0,0,0,0.6),
+                0 0 0 1px rgba(255,255,255,0.03),
+                inset 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        #miniMapImg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        #miniViewport {
+            position: absolute;
+            border: 1px solid var(--green);
+            background: rgba(0,208,104,0.12);
+            box-shadow: 0 0 8px var(--green-glow);
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        /* ========================= TABLE COLUMN ========================= */
+        .table-column {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            gap: 10px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        #sectionTitle {
+            margin: 0;
+            color: var(--green);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        /* ========================= PART CODE ========================= */
+        .part-code {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--part-code-color);
+            background: var(--part-code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--sidebar-border);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        /* иконка копирования — всегда слабо видна */
+        .part-code::after {
+            content: '⎘';
+            font-size: 11px;
+            opacity: 0.35;
+            transition: opacity 0.15s;
+            line-height: 1;
+        }
+
+        /* ярче при hover */
+        .part-code:hover::after {
+            opacity: 1;
+        }
+
+        .part-code:hover {
+            background: var(--green);
+            color: #000;
+            border-color: var(--green);
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        /* ========================= TABLE ========================= */
+        .table-area {
+            overflow-y: auto;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        .table-area::-webkit-scrollbar { width: 3px; }
+        .table-area::-webkit-scrollbar-track { background: transparent; }
+        .table-area::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 2px; }
+        .table-area::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: var(--table-header-bg);
+            color: var(--text-dim);
+            padding: 9px 6px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid var(--sidebar-border);
+        }
+
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--table-cell-color);
+            font-size: 12px;
+            transition: background 0.1s;
+        }
+
+        #tableBody tr { transition: background 0.1s; }
+        #tableBody tr:hover td { background: rgba(255,255,255,0.025); cursor: pointer; }
+        tr.hovered td { background: rgba(255,255,255,0.025) !important; cursor: pointer; }
+
+        @keyframes rowFlash {
+            0%   { background: rgba(0,208,104,0.35) !important; }
+            100% { background: var(--green-dim) !important; }
+        }
+
+        tr.highlight td {
+            background: var(--green-dim) !important;
+            color: var(--text);
+            border-bottom-color: rgba(0,208,104,0.2);
+            border-top-color: rgba(0,208,104,0.2);
+        }
+
+        tr.highlight.flash-row td {
+            animation: rowFlash 0.5s ease-out forwards;
+        }
+
+        tr.highlight td:first-child {
+            border-left: 3px solid var(--green);
+            padding-left: 9px;
+            box-shadow: inset 3px 0 10px rgba(0,208,104,0.15);
+        }
+
+        tr.highlight .part-code {
+            color: #000;
+            background: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--green-glow), 0 2px 6px rgba(0,0,0,0.3);
+            padding: 3px 8px 3px 7px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        /* иконка всегда видна в выделенной строке */
+        tr.highlight .part-code::after {
+            opacity: 0.8;
+        }
+
+        tr.highlight .part-code:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 14px var(--green-glow), 0 3px 10px rgba(0,0,0,0.4);
+            transform: scale(1.05);
+        }
+
+        tr.highlight .part-code:hover::after {
+            opacity: 1;
+        }
+
+        /* ========================= ACTION BUTTONS ========================= */
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .action-btns .zoom-btn {
+            font-size: 10px;
+            padding: 6px 12px;
+        }
+
+        /* ========================= FAV STATS ========================= */
+        .fav-stats {
+            display: none;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        #viewPane.fav-mode .fav-stats { display: flex; }
+        #viewPane.fav-mode .catalog-thead { display: none; }
+        #viewPane.fav-mode .fav-thead { display: table-header-group; }
+        .fav-thead { display: none; }
+        #viewPane.fav-mode .viewport-column { display: none; }
+        #viewPane.fav-mode .table-column { width: 100%; }
+
+        .fav-stat-card {
+            background: var(--menu-hover-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 4px;
+            padding: 8px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+
+        .fav-stat-card strong {
+            display: block;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 0;
+            line-height: 1.1;
+        }
+
+        .fav-section-badge {
+            display: inline-block;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,208,104,0.2);
+            color: var(--green);
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .fav-section-badge:hover {
+            background: rgba(0,208,104,0.2);
+            border-color: var(--green);
+        }
+
+        /* ========================= HOME SCREEN ========================= */
+        #placeholder {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--home-gradient);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Scan-line texture on home */
+        #placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 3px,
+                var(--scan-line) 3px,
+                var(--scan-line) 4px
+            );
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Corner brackets */
+        #placeholder::after {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .home-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            width: 90%;
+            max-width: 860px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Corner accent brackets on home card */
+        .home-card::before,
+        .home-card::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--green);
+            border-style: solid;
+            opacity: 0.5;
+        }
+
+        .home-card::before {
+            top: 14px;
+            left: 14px;
+            border-width: 1px 0 0 1px;
+        }
+
+        .home-card::after {
+            bottom: 14px;
+            right: 14px;
+            border-width: 0 1px 1px 0;
+        }
+
+        .home-bike {
+            width: 100%;
+            max-width: 640px;
+            max-height: 50vh;
+            object-fit: contain;
+            margin-bottom: 28px;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+
+        .home-bike:hover {
+            transform: scale(1.015);
+            filter: drop-shadow(0 24px 50px rgba(0,0,0,0.7)) drop-shadow(0 0 30px var(--green-glow));
+        }
+
+        .home-card h1 {
+            margin: 0;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 44px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .home-card p {
+            margin: 8px 0 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--green);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .home-line {
+            width: 80px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--green), transparent);
+            margin-bottom: 20px;
+        }
+
+        .home-card span {
+            color: var(--text-dim);
+            font-size: 13px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        /* Mobile quick actions on home screen */
+        .home-hint-desktop { display: block; }
+        .home-mobile-actions { display: none; }
+
+        @media (max-width: 768px) {
+            .home-hint-desktop { display: none; }
+            .home-mobile-actions {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+            }
+            .home-mobile-hint {
+                font-family: 'IBM Plex Mono', monospace;
+                font-size: 9px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                color: var(--text-dim);
+                opacity: 0.6;
+                margin-bottom: 2px;
+            }
+            .home-mobile-btns {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+            .home-mobile-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                padding: 16px 10px;
+                border: 1px solid var(--sidebar-border);
+                border-radius: 8px;
+                background: var(--menu-active-bg);
+                cursor: pointer;
+                transition: border-color 0.2s, background 0.2s;
+                text-align: center;
+            }
+            .home-mobile-btn:hover, .home-mobile-btn:active {
+                border-color: var(--green);
+                background: var(--green-dim);
+            }
+            .home-mobile-btn-icon {
+                font-size: 22px;
+                line-height: 1;
+                color: var(--text-dim);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .home-mobile-btn-label {
+                font-family: 'Barlow Condensed', sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                color: var(--text);
+            }
+            .home-mobile-btn-sub {
+                font-family: 'IBM Plex Mono', monospace;
+                font-size: 8px;
+                letter-spacing: 1px;
+                color: var(--text-dim);
+                opacity: 0.6;
+            }
+        }
+
+        /* ========================= DOTS ========================= */
+        @keyframes pulse {
+            0%   { transform: translate(-50%, -50%) scale(1); }
+            50%  { transform: translate(-50%, -50%) scale(1.18); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes pulseActive {
+            0%   { box-shadow: 0 0 0 0px var(--green-glow), 0 0 10px var(--green-glow); }
+            60%  { box-shadow: 0 0 0 8px rgba(0,208,104,0),  0 0 18px var(--green-glow); }
+            100% { box-shadow: 0 0 0 0px rgba(0,208,104,0),  0 0 10px var(--green-glow); }
+        }
+
+        @keyframes dotAppear {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+        }
+
+        .part-dot {
+            position: absolute;
+            /* size set via JS from part.size, default ~3%×2.2% */
+            background: rgba(255, 215, 0, 0.12);
+            border: 1.5px solid rgba(255, 215, 0, 0.5);
+            border-radius: 3px;
+            z-index: 100;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+            box-sizing: border-box;
+            /* центрируем через transform вместо отрицательных margin */
+            transform: translate(-50%, -50%);
+        }
+
+        .part-dot::before { display: none; }
+        .part-dot::after  { display: none; }
+
+        .part-dot:hover {
+            background: rgba(255, 215, 0, 0.28);
+            border-color: #ffd700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+            transform: translate(-50%, -50%) scale(1.12);
+        }
+
+        /* ACTIVE DOT — кардинально отличается от неактивных */
+        .part-dot.active {
+            background: rgba(0, 208, 104, 0.30);
+            border: 2.5px solid var(--green);
+            border-radius: 4px;
+            box-shadow:
+                0 0 0 0px var(--green-glow),
+                0 0 12px var(--green-glow),
+                inset 0 0 6px rgba(0,208,104,0.2);
+            animation: pulseActive 1.4s ease-out infinite;
+            transform: translate(-50%, -50%) scale(1.18);
+            z-index: 200;
+        }
+
+        @keyframes searchPing {
+            0%   { outline: 0px solid rgba(0,208,104,0);   outline-offset: 0px;  }
+            50%  { outline: 3px solid rgba(0,208,104,0.9); outline-offset: 7px;  }
+            100% { outline: 0px solid rgba(0,208,104,0);   outline-offset: 14px; }
+        }
+
+        .part-dot.search-ping {
+            animation: searchPing 0.6s ease-out 3;
+        }
+
+        /* ========================= FAVORITES ========================= */
+        .favorite-btn {
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            opacity: 0.3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+        }
+
+        .favorite-btn svg { display: block; }
+
+        .favorite-btn:hover {
+            transform: scale(1.2);
+            opacity: 0.8;
+            color: var(--green);
+        }
+
+        .favorite-btn.active {
+            opacity: 1;
+            color: var(--green);
+            filter: drop-shadow(0 0 4px var(--green-glow));
+        }
+
+        tr.favorite-row td {
+            background: rgba(0, 208, 104, 0.04);
+        }
+
+        /* REF subtitle — только на мобиле */
+        .part-ref-sub { display: none; }
+
+        /* ========================= QTY COUNTER ========================= */
+        .qty-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 4px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .qty-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dim);
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .qty-btn:hover { background: var(--green); color: #000; }
+        .qty-btn.minus:hover { background: #c0392b; color: #fff; }
+
+        .qty-val {
+            min-width: 26px;
+            text-align: center;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            padding: 0 2px;
+            transition: transform 0.12s ease, opacity 0.12s ease;
+        }
+
+        .qty-val.bump { transform: scale(1.3); opacity: 0.6; }
+
+        /* ========================= FLY STAR ========================= */
+        .fly-star {
+            position: fixed;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 99999;
+            will-change: transform, opacity;
+            animation: flyToMenu 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes flyToMenu {
+            0%   { transform: scale(1.4) rotate(0deg); opacity: 1; }
+            60%  { opacity: 1; }
+            100% { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+        }
+
+        /* ========================= MOBILE DRAWER ========================= */
+
+        /* ========================= TOP BAR ========================= */
+        #topBar {
+            height: 44px;
+            border-bottom: 1px solid var(--sidebar-border);
+            background: var(--sidebar-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .topbar-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .topbar-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .topbar-sep { flex-grow: 1; }
+        .topbar-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            padding: 3px 8px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            color: var(--green);
+            letter-spacing: 1.5px;
+            flex-shrink: 0;
+        }
+
+        /* ← Back to Hub button */
+        #backToHub {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 4px 10px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 3px;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+            flex-shrink: 0;
+        }
+        #backToHub:hover {
+            color: var(--green);
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+        #backToHub svg {
+            width: 10px; height: 10px;
+            stroke: currentColor; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        /* Mobile hamburger — inline in topBar */
+        #menuToggle {
+            display: none;
+            width: 34px; height: 34px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 5px;
+            background: transparent;
+            cursor: pointer;
+            align-items: center; justify-content: center; flex-direction: column;
+            gap: 4px; padding: 0; flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        #menuToggle.open { border-color: var(--green); }
+        #sidebarClose {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            #sidebarClose {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                top: 50%;
+                right: 14px;
+                transform: translateY(-50%);
+                width: 32px;
+                height: 32px;
+                border: 1px solid var(--sidebar-border);
+                border-radius: 5px;
+                background: transparent;
+                color: var(--text-dim);
+                cursor: pointer;
+                transition: border-color 0.2s, color 0.2s, background 0.2s;
+                padding: 0;
+                z-index: 1;
+            }
+            #sidebarClose:hover {
+                border-color: var(--green);
+                color: var(--green);
+                background: var(--green-dim);
+            }
+        }
+        #menuToggle span {
+            display: block;
+            width: 18px;
+            height: 1.5px;
+            background: var(--text-dim);
+            border-radius: 2px;
+            transition: all 0.25s ease;
+        }
+        #menuToggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); background: var(--green); }
+        #menuToggle.open span:nth-child(2) { opacity: 0; }
+        #menuToggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); background: var(--green); }
+
+        #sidebarOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+        #sidebarOverlay.visible { display: block; }
+
+        #mobileTabBar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(56px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: var(--sidebar-bg);
+            border-top: 1px solid var(--sidebar-border);
+            z-index: 100;
+        }
+        .mob-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            transition: color 0.15s;
+            border: none;
+            background: none;
+            min-height: 56px;
+            width: 33.333%;
+        }
+        .mob-tab.active { color: var(--green); }
+        .mob-tab-icon {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+            color: inherit;
+        }
+        .mob-tab-icon svg { display: block; }
+        .mob-tab.active .mob-tab-icon { background: var(--green-dim); border-color: rgba(0,208,104,0.3); }
+
+        @media (max-width: 768px) {
+            #menuToggle { display: flex; }
+            /* mobileTabBar показывается через JS только когда открыт раздел */
+
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 280px;
+                z-index: 9999;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 4px 0 40px rgba(0,0,0,0.8);
+                padding-top: env(safe-area-inset-top, 0px);
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+            #sidebar.open { transform: translateX(0); }
+
+            body { overflow: hidden; }
+            #main { width: 100%; }
+
+            .content-wrapper {
+                padding: 10px 10px calc(68px + env(safe-area-inset-bottom, 0px));
+                gap: 8px;
+                overflow-y: auto;
+                height: calc(100vh - 44px);
+            }
+
+            #main.no-tabbar .content-wrapper {
+                padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            }
+
+            #searchInput { font-size: 16px; padding: 12px 14px 12px 40px; }
+
+            .workspace {
+                flex-direction: column;
+                border-radius: 4px;
+                /* Не растягиваем workspace бесконечно */
+                flex-grow: 0;
+                height: auto;
+            }
+
+            .viewport-column {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--sidebar-border);
+                padding: 8px;
+                gap: 8px;
+                /* Фиксируем высоту колонки чтобы viewport-box не растягивался в бесконечность */
+                height: calc(100vh - 180px);
+                max-height: calc(100vh - 180px);
+                flex-shrink: 0;
+            }
+
+            /* Явная высота для viewport-box на мобиле */
+            .viewport-box {
+                height: calc(100vh - 270px) !important;
+                min-height: 200px;
+                max-height: calc(100vh - 270px);
+                flex-grow: 0 !important;
+            }
+
+            .table-column { width: 100%; padding: 10px; gap: 8px; }
+
+            .workspace[data-tab="schema"] .table-column { display: none; }
+            .workspace[data-tab="schema"] .viewport-column { display: flex; }
+            .workspace[data-tab="parts"] .viewport-column { display: none; }
+            .workspace[data-tab="parts"] .table-column { display: flex; }
+
+            #miniMap { display: none; }
+
+            .zoom-btn { padding: 8px 14px; font-size: 12px; min-height: 40px; }
+
+            th { font-size: 8px; padding: 8px 4px; }
+            td { font-size: 11px; padding: 8px 4px; }
+            .part-code { font-size: 10px; padding: 3px 5px; }
+
+            .action-btns { gap: 4px; }
+            .action-btns .zoom-btn { font-size: 9px; padding: 8px 10px; }
+
+            .qty-btn { width: 22px; height: 22px; font-size: 13px; }
+            .qty-val { font-size: 11px; min-width: 16px; }
+            /* Фиксированный layout только на мобиле */
+            #partsTable { table-layout: fixed; width: 100%; }
+            td:has(.qty-counter) { overflow: visible; padding: 0 2px; }
+            .qty-counter { transform: scale(0.9); transform-origin: center; }
+
+            /* Скрываем колонку REF — она переехала под название */
+            .col-ref { display: none; }
+            .col-fav-section { display: none; }
+            .table-area th:nth-child(3) { display: none; }
+
+            /* Иконку копирования убираем — экономим место */
+            .part-code::after { display: none; }
+            .part-code { font-size: 9px; padding: 2px 4px; gap: 0; }
+
+            /* NAME — нормальный wrap, без обрезки */
+            #tableBody td:nth-child(2) {
+                overflow: visible;
+                text-overflow: unset;
+                white-space: normal;
+                max-width: none;
+            }
+
+            /* REF/Section под названием */
+            .part-ref-sub {
+                display: block;
+                font-size: 9px;
+                font-weight: 400;
+                color: var(--green);
+                opacity: 0.75;
+                margin-top: 2px;
+                letter-spacing: 0.5px;
+            }
+            .fav-section-sub { cursor: pointer; }
+            .fav-section-sub:hover { opacity: 1; }
+
+            .home-card { padding: 24px 16px; }
+            .home-card h1 { font-size: 26px; letter-spacing: 1px; }
+            .home-bike { max-height: 30vh; }
+            .home-card p { font-size: 9px; letter-spacing: 2px; }
+
+            #themeSwitcher { padding: 8px 10px; gap: 6px; }
+            .theme-btn { width: 24px; height: 24px; min-height: unset; padding: 0; font-size: unset; }
+
+            .menu-item { padding: 14px 16px; min-height: 48px; }
+
+            #sectionTitle { font-size: 13px; }
+
+            .fav-stat-card { padding: 6px 10px; }
+            .fav-stat-card strong { font-size: 20px; }
+        }
+
+        @media (max-width: 400px) {
+            #sidebar { width: 260px; }
+        }
+
+        /* ========================= MENU ACCORDION PREVIEW (mobile) ========================= */
+        .menu-accordion {
+            display: none;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--preview-bg);
+            border-bottom: 1px solid var(--sidebar-border);
+        }
+        .menu-accordion.open {
+            max-height: 340px;
+        }
+        .menu-accordion-inner {
+            padding: 10px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .menu-accordion img {
+            width: 100%;
+            border-radius: 5px;
+            display: block;
+            background: #fff;
+            max-height: 200px;
+            object-fit: contain;
+        }
+        .menu-accordion-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--green-dim);
+            border: 1px solid var(--green);
+            border-radius: 5px;
+            color: var(--green);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .menu-accordion-btn:active {
+            background: var(--green);
+            color: #000;
+        }
+        @media (max-width: 768px) {
+            .menu-accordion { display: block; }
+        }
+
+    </style>
+</head>
+<body>
+<div id="toast">COPIED</div>
+<div id="menuPreview">
+    <img id="menuPreviewImg" src="" alt="">
+    <div class="preview-label" id="menuPreviewLabel"></div>
+</div>
+
+<!-- Overlay -->
+<div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<!-- Mobile tab bar -->
+<div id="mobileTabBar">
+    <button class="mob-tab active" id="tabSchema" onclick="switchMobileTab('schema')">
+        <div class="mob-tab-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M4 6h8M4 8.5h5M4 11h6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                <circle cx="11.5" cy="9.5" r="2" stroke="currentColor" stroke-width="1.1"/>
+            </svg>
+        </div>
+        Схема
+    </button>
+    <button class="mob-tab" id="tabParts" onclick="switchMobileTab('parts')">
+        <div class="mob-tab-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+        </div>
+        Детали
+    </button>
+</div>
+
+<div id="sidebar">
+    <div class="header">
+    <a href="#" onclick="goHome(); closeMobileSidebar(); return false;">
+        <div class="header-eyebrow">Kawasaki · 2026</div>
+        <div class="header-title">KLE 500 SE</div>
+    </a>
+    <button id="sidebarClose" onclick="closeMobileSidebar()" aria-label="Закрыть меню">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+    </button>
+</div>
+    <div id="favPinned"></div>
+    <div id="menu"></div>
+    <div id="themeSwitcher">
+        <span class="theme-switcher-label" data-i18n="theme">Theme</span>
+        <button class="theme-btn" data-theme="dark"      onclick="setTheme('dark', this)"      title="Dark"></button>
+        <button class="theme-btn" data-theme="oem-green" onclick="setTheme('oem-green', this)" title="OEM Green"></button>
+        <button class="theme-btn" data-theme="blueprint" onclick="setTheme('blueprint', this)" title="Blueprint"></button>
+        <button class="theme-btn" data-theme="light"     onclick="setTheme('light', this)"     title="Light"></button>
+    </div>
+    <div id="langSwitcher">
+        <button class="lang-btn active" data-lang="ru" onclick="setLang('ru',this)">RU</button>
+        <button class="lang-btn"        data-lang="en" onclick="setLang('en',this)">EN</button>
+        <button class="lang-btn"        data-lang="es" onclick="setLang('es',this)">ES</button>
+    </div>
+</div>
+
+<div id="main">
+    <div id="topBar">
+        <button id="menuToggle" onclick="toggleMobileSidebar()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <span class="topbar-label" data-i18n="module">Module</span>
+        <span class="topbar-title" id="topBarTitle">EPC</span>
+        <div class="topbar-sep"></div>
+        <span class="topbar-badge" id="topBarBadge">EPC</span>
+        <a id="backToHub" href="index.html" title="Back to Hub">
+            <svg viewBox="0 0 10 10"><polyline points="6,2 2,5 6,8"/></svg>
+            <span data-i18n="hub">Hub</span>
+        </a>
+    </div>
+    <div class="content-wrapper">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Поиск по всему каталогу..." autocomplete="off">
+            <button id="searchClear" onclick="clearSearch()" title="Очистить поиск">✕</button>
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- Контейнер разбит на две колонки -->
+        <div id="viewPane" class="workspace" style="display:none;">
+            
+            <!-- Лево: Схема и зум -->
+<div class="viewport-column">
+
+    <div class="controls">
+        <div>
+            <button class="zoom-btn" onclick="changeZoom(0.2)">+</button>
+            <button class="zoom-btn" onclick="changeZoom(-0.2)">-</button>
+            <button class="zoom-btn" onclick="fitToScreen()" data-i18n="center">Центр</button>
+
+            <span
+                id="zoomVal"
+            style="margin-left:10px; color:var(--menu-item-color); font-size:11px;"
+            >
+                100%
+            </span>
+        </div>
+    </div>
+
+    <div class="viewport-box" id="viewport">
+
+        <div class="img-wrapper" id="imgWrapper">
+            <img id="mainImg" src="" draggable="false">
+        </div>
+
+    </div>
+
+    <!-- =========================
+    MINIMAP
+    ========================= -->
+
+    <div id="miniMap">
+
+        <img id="miniMapImg" src="">
+
+        <div id="miniViewport"></div>
+
+    </div>
+
+</div>
+
+            <!-- Право: Заголовок и Таблица -->
+            <div class="table-column">
+                <h3 id="sectionTitle">SECTION</h3>
+
+                <!-- Favorites stats (visible only in fav mode) -->
+                <div class="fav-stats" id="favStats">
+                    <div class="fav-stat-card"><strong id="statParts">0</strong>Parts</div>
+                    <div class="fav-stat-card"><strong id="statQty">0</strong>Total qty</div>
+                    <div class="fav-stat-card"><strong id="statSections">0</strong>Sections</div>
+                </div>
+                
+                <div class="action-btns">
+    <button class="zoom-btn" onclick="exportFavorites()" data-i18n="exportBtn">EXPORT</button>
+    <button class="zoom-btn" onclick="printPartsList()">PRINT</button>
+</div>
+
+                <div class="table-area">
+                    <table id="partsTable">
+                        <thead class="catalog-thead">
+<tr>
+    <th style="width:32px;">★</th>
+    <th style="width:auto;">NAME</th>
+    <th class="col-ref" style="width:52px;">REF</th>
+    <th style="width:120px;">PART NUMBER</th>
+    <th style="width:68px; text-align: center;">QTY</th>
+</tr>
+                        </thead>
+                        <thead class="fav-thead">
+<tr>
+    <th style="width:32px;"></th>
+    <th style="width:auto;">NAME</th>
+    <th class="col-fav-section" style="width:160px;">SECTION</th>
+    <th style="width:120px;">PART NUMBER</th>
+    <th style="width:68px; text-align:center;">QTY</th>
+</tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+
+<div id="placeholder">
+
+    <div class="home-card">
+
+        <img
+            src="images/bike.jpg"
+            alt="Kawasaki KLE500SE"
+            class="home-bike"
+        >
+
+        <h1>Kawasaki KLE500SE 2026 EPC</h1>
+
+        <p>
+            Electronic Parts Catalogue
+        </p>
+
+        <div class="home-line"></div>
+
+        <span class="home-hint-desktop">Выберите раздел в меню слева</span>
+
+        <!-- Показывается только на мобиле -->
+        <div class="home-mobile-actions">
+            <div class="home-mobile-hint">Выберите раздел для начала работы</div>
+            <div class="home-mobile-btns">
+                <button class="home-mobile-btn" onclick="toggleMobileSidebar()">
+                    <span class="home-mobile-btn-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+                    <span class="home-mobile-btn-label">Меню разделов</span>
+                    <span class="home-mobile-btn-sub">Выбрать узел</span>
+                </button>
+                <button class="home-mobile-btn home-mobile-btn-search" onclick="document.getElementById('searchInput').focus()">
+                    <span class="home-mobile-btn-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9.5" cy="9.5" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M14 14l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+                    <span class="home-mobile-btn-label" data-i18n="searchParts">Поиск деталей</span>
+                    <span class="home-mobile-btn-sub">По номеру или названию</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+    </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+    let scale = 1.0,
+        isDragging = false,
+        startX,
+        startY,
+        translateX = 0,
+        translateY = 0;
+
+    // =========================
+    // SELECTED ITEM
+    // =========================
+
+    let selectedRow = null;
+    let selectedDots = [];
+
+    // =========================
+    // FAVORITES
+    // =========================
+
+    let favorites = JSON.parse(localStorage.getItem('kleFavorites') || '[]');
+
+    function saveFavorites() {
+        localStorage.setItem('kleFavorites', JSON.stringify(favorites));
+        updateFavBadge();
+        // Обновляем Total qty если открыт Favorites
+        const statQty = document.getElementById('statQty');
+        if (statQty && document.getElementById('viewPane')?.classList.contains('fav-mode')) {
+            const total = favorites.reduce((sum, f) => sum + (parseInt(f.customQty) || 0), 0);
+            statQty.textContent = total;
+        }
+    }
+
+    function updateFavBadge() {
+        const badge = document.getElementById('favCountBadge');
+        if (!badge) return;
+        const count = favorites.length;
+        badge.textContent = count;
+        if (count > 0) {
+            badge.classList.add('has-items');
+        } else {
+            badge.classList.remove('has-items');
+        }
+    }
+
+    function isFavorite(code){
+        return favorites.some(f => f.code === code);
+    }
+
+    function flyToFavorites(fromEl) {
+
+        // Находим кнопку FAVORITES в меню как цель
+        const target = document.querySelector('#menu .menu-item');
+        if (!target || !fromEl) return;
+
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = target.getBoundingClientRect();
+
+        const star = document.createElement('div');
+        star.className = 'fly-star';
+        star.innerText = '⭐';
+
+        // Стартовая позиция — центр звёздочки
+        star.style.left = (fromRect.left + fromRect.width / 2 - 11) + 'px';
+        star.style.top  = (fromRect.top  + fromRect.height / 2 - 11) + 'px';
+
+        document.body.appendChild(star);
+
+        // Считаем вектор полёта
+        const dx = (toRect.left + toRect.width / 2) - (fromRect.left + fromRect.width / 2);
+        const dy = (toRect.top  + toRect.height / 2) - (fromRect.top  + fromRect.height / 2);
+
+        star.animate([
+            { transform: `scale(1.4) translate(0, 0) rotate(0deg)`,   opacity: 1 },
+            { transform: `scale(0.5) translate(${dx}px, ${dy}px) rotate(-20deg)`, opacity: 0 }
+        ], {
+            duration: 650,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards'
+        }).onfinish = () => {
+            star.remove();
+
+            // Пульс на кнопке FAVORITES
+            target.animate([
+                { transform: 'scale(1)',    background: '' },
+                { transform: 'scale(1.08)', background: 'rgba(255,215,0,0.25)' },
+                { transform: 'scale(1)',    background: '' }
+            ], { duration: 300, easing: 'ease-out' });
+        };
+    }
+
+    function toggleFavorite(code, row){
+
+        const idx = favorites.findIndex(f => f.code === code);
+
+        if(idx !== -1){
+            favorites.splice(idx, 1);
+        } else {
+            favorites.push({
+                code: code,
+                customQty: 1
+            });
+
+            // Анимация только при добавлении
+            const star = row.querySelector('.favorite-btn');
+            flyToFavorites(star);
+        }
+
+        saveFavorites();
+        if (document.getElementById('sectionTitle')?.innerText === 'FAVORITES') {
+            showFavorites();
+        }
+        updateFavoriteUI(code, row);
+    }
+
+    function updateFavoriteUI(code, row) {
+
+        const star = row.querySelector('.favorite-btn');
+        if (!star) return;
+
+        // QTY ячейка — последняя td в строке
+        const cells = row.querySelectorAll('td');
+        const qtyCell = cells[cells.length - 1];
+        const found = partByCode.get(code);
+        const defaultQty = found ? found.part.qty : 1;
+
+        const SVG_FILLED = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="currentColor"/></svg>`;
+        const SVG_EMPTY  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+
+        if (isFavorite(code)) {
+
+            star.classList.add('active');
+            row.classList.add('favorite-row');
+            star.innerHTML = SVG_FILLED;
+
+            // Заменяем статичное число на счётчик
+            if (!qtyCell.querySelector('.qty-counter')) {
+                const fav = favorites.find(f => f.code === code);
+                const currentQty = fav?.customQty ?? 1;
+                renderQtyCounter(qtyCell, code, currentQty);
+            }
+
+        } else {
+
+            star.classList.remove('active');
+            row.classList.remove('favorite-row');
+            star.innerHTML = SVG_EMPTY;
+
+            // Возвращаем статичное число
+            qtyCell.style.textAlign = 'center';
+            qtyCell.style.fontWeight = 'bold';
+            qtyCell.innerHTML = defaultQty;
+        }
+    }
+
+    function renderQtyCounter(cell, code, qty) {
+
+        cell.style.textAlign = 'center';
+        cell.innerHTML = '';
+
+        const counter = document.createElement('div');
+        counter.className = 'qty-counter';
+
+        const minus = document.createElement('div');
+        minus.className = 'qty-btn minus';
+        minus.innerText = '−';
+
+        const val = document.createElement('div');
+        val.className = 'qty-val';
+        val.innerText = qty;
+
+        const plus = document.createElement('div');
+        plus.className = 'qty-btn plus';
+        plus.innerText = '+';
+
+        function bump() {
+            val.classList.add('bump');
+            setTimeout(() => val.classList.remove('bump'), 120);
+        }
+
+        minus.addEventListener('click', e => {
+            e.stopPropagation();
+            const fav = favorites.find(f => f.code === code);
+            if (!fav) return;
+            if (fav.customQty <= 1) return;
+            fav.customQty--;
+            val.innerText = fav.customQty;
+            bump();
+            saveFavorites();
+        });
+
+        plus.addEventListener('click', e => {
+            e.stopPropagation();
+            const fav = favorites.find(f => f.code === code);
+            if (!fav) return;
+            fav.customQty++;
+            val.innerText = fav.customQty;
+            bump();
+            saveFavorites();
+        });
+
+        counter.appendChild(minus);
+        counter.appendChild(val);
+        counter.appendChild(plus);
+        cell.appendChild(counter);
+    }
+
+    const viewport = document.getElementById('viewport');
+    const imgWrapper = document.getElementById('imgWrapper');
+    const mainImg = document.getElementById('mainImg');
+
+    const searchInput   = document.getElementById('searchInput');
+    const searchResults  = document.getElementById('searchResults');
+
+    const searchIndex = motorcycleData.sections.flatMap(s =>
+        s.parts.map(p => ({
+            s,
+            p,
+            descLower: p.desc.toLowerCase(),
+            codeLower: p.code.toLowerCase()
+        }))
+    );
+
+    const partByCode = new Map(
+        motorcycleData.sections.flatMap(s =>
+            s.parts.map(p => [p.code, { part: p, sectionTitle: s.title }])
+        )
+    );
+
+    // Подсветка совпадения в тексте
+    function highlight(text, query) {
+        if (!query) return text;
+        const idx = text.toLowerCase().indexOf(query);
+        if (idx === -1) return text;
+        return (
+            text.slice(0, idx) +
+            `<mark style="background:var(--green);color:#000;border-radius:2px;padding:0 1px;">${text.slice(idx, idx + query.length)}</mark>` +
+            text.slice(idx + query.length)
+        );
+    }
+
+    let searchTimer;
+    searchInput.addEventListener('input', (e) => {
+
+        // Крестик очистки
+        const clearBtn = document.getElementById('searchClear');
+        if (clearBtn) {
+            clearBtn.classList.toggle('visible', e.target.value.length > 0);
+            searchInput.classList.toggle('has-value', e.target.value.length > 0);
+        }
+
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+
+            const query = e.target.value.toLowerCase().trim();
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const matches = searchIndex.filter(({ descLower, codeLower }) =>
+                descLower.includes(query) || codeLower.includes(query)
+            );
+
+            if (matches.length > 0) {
+
+                searchResults.innerHTML = matches
+                    .slice(0, 50)
+                    .map(m => `
+                        <div class="search-res-item"
+                            onclick="goToPart('${m.s.title}', '${m.p.code}')">
+
+                            <b>${highlight(m.p.desc, query)}</b>
+                            <span class="part-code">${highlight(m.p.code, query)}</span><br>
+
+                            <small style="color:var(--menu-item-color)">
+                                ${m.s.title}
+                            </small>
+                        </div>
+                    `)
+                    .join('');
+
+                searchResults.style.display = 'block';
+
+            } else {
+
+                searchResults.style.display = 'none';
+            }
+
+        }, 180);
+    });
+
+    function clearSearch() {
+        searchInput.value = '';
+        searchResults.style.display = 'none';
+        const clearBtn = document.getElementById('searchClear');
+        if (clearBtn) clearBtn.classList.remove('visible');
+        searchInput.classList.remove('has-value');
+        searchInput.focus();
+    }
+
+    // Скрыть при клике вне поиска
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+
+    function clearSearch() {
+        searchInput.value = '';
+        searchResults.style.display = 'none';
+        const clearBtn = document.getElementById('searchClear');
+        if (clearBtn) clearBtn.classList.remove('visible');
+        searchInput.classList.remove('has-value');
+        searchInput.focus();
+    }
+
+    // Скрыть результаты при клике вне поиска
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+
+// =========================
+// GO TO PART
+// =========================
+
+    function flashRow(row) {
+        row.classList.add('flash-row');
+        setTimeout(() => row.classList.remove('flash-row'), 520);
+    }
+
+    function goToSection(title) {
+
+        const section = motorcycleData.sections.find(s => s.title === title);
+        if (!section) return;
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.title === title) {
+                item.classList.add('active');
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+
+        selectSection(section);
+    }
+
+    function goToPart(sectionTitle, partCode) {
+
+        searchResults.style.display = 'none';
+        searchInput.value = '';
+        if (document.getElementById('searchClear')) { document.getElementById('searchClear').classList.remove('visible'); searchInput.classList.remove('has-value'); }
+
+        const section = motorcycleData.sections.find(
+            s => s.title === sectionTitle
+        );
+
+        document.querySelectorAll('.menu-item')
+            .forEach(item => {
+
+                item.classList.remove('active');
+
+                if (item.dataset.title === sectionTitle) {
+
+                    item.classList.add('active');
+
+                    item.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
+            });
+
+        // Открываем раздел и ждём реального onload
+        selectSection(section, () => {
+
+            const row = document.querySelector(`#tableBody tr[data-code="${partCode}"]`);
+
+            if (!row) return;
+
+            // Подсвечиваем строку
+            if (selectedRow) selectedRow.classList.remove('highlight');
+            selectedDots.forEach(d => d.classList.remove('active'));
+            selectedRow = row;
+            selectedDots = row._dots || [];
+            row.classList.add('highlight');
+            flashRow(row);
+            selectedDots.forEach(d => d.classList.add('active'));
+
+            // На мобиле — сначала показываем схему с точкой, детали — через задержку
+            if (window.innerWidth <= 768) {
+                switchMobileTab('schema');
+                setTimeout(() => {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            } else {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Приближаем схему через zoomToDot (fromSearch = true → всегда 2.2x)
+            if (selectedDots.length > 0) {
+                zoomToDot(selectedDots[0], true);
+
+                // Пульс: зелёный ripple поверх активной точки
+                setTimeout(() => {
+                    selectedDots.forEach(dot => {
+                        dot.classList.remove('search-ping');
+                        void dot.offsetWidth; // reflow to restart animation
+                        dot.classList.add('search-ping');
+                        setTimeout(() => dot.classList.remove('search-ping'), 1900);
+                    });
+                }, 520);
+            } else {
+                // Деталь без точки на схеме — просто переключаем на список деталей
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => switchMobileTab('parts'), 300);
+                }
+            }
+        });
+    }
+
+    // =========================
+    // DRAGGING
+    // =========================
+
+    viewport.addEventListener('mousedown', e => {
+
+        if (e.target.classList.contains('part-dot')) return;
+
+        isDragging = true;
+        imgWrapper.style.transition = 'none';
+
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+
+        viewport.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', e => {
+
+        if (!isDragging) return;
+
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+
+        updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+    
+    imgWrapper.style.transition =
+    'transform 0.05s linear';
+
+        isDragging = false;
+        viewport.style.cursor = 'grab';
+    });
+
+    // =========================
+    // TOUCH SUPPORT (pan + pinch)
+    // =========================
+    let lastTouchDist = null;
+    let touchStartX, touchStartY;
+
+    viewport.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            imgWrapper.style.transition = 'none';
+            touchStartX = e.touches[0].clientX - translateX;
+            touchStartY = e.touches[0].clientY - translateY;
+        } else if (e.touches.length === 2) {
+            isDragging = false;
+            lastTouchDist = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
+        }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', e => {
+        if (e.touches.length === 1 && isDragging) {
+            e.preventDefault();
+            translateX = e.touches[0].clientX - touchStartX;
+            translateY = e.touches[0].clientY - touchStartY;
+            updateTransform();
+        } else if (e.touches.length === 2 && lastTouchDist !== null) {
+            e.preventDefault();
+            const dist = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
+            const pinchDelta = (dist - lastTouchDist) * 0.01;
+            lastTouchDist = dist;
+
+            // Центр между двумя пальцами
+            const rect = viewport.getBoundingClientRect();
+            const cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+            const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+            const imageX = (cx - translateX) / scale;
+            const imageY = (cy - translateY) / scale;
+            const newScale = Math.max(0.1, Math.min(6, scale + pinchDelta));
+            translateX = cx - imageX * newScale;
+            translateY = cy - imageY * newScale;
+            scale = newScale;
+            updateTransform();
+        }
+    }, { passive: false });
+
+    viewport.addEventListener('touchend', e => {
+        isDragging = false;
+        lastTouchDist = null;
+        imgWrapper.style.transition = 'transform 0.05s linear';
+    }, { passive: true });
+
+
+// =========================
+// ZOOM TO CURSOR
+// =========================
+
+viewport.addEventListener('wheel', e => {
+
+    e.preventDefault();
+
+    const rect = viewport.getBoundingClientRect();
+
+    // позиция курсора внутри viewport
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // координаты изображения под курсором
+    const imageX = (mouseX - translateX) / scale;
+    const imageY = (mouseY - translateY) / scale;
+
+    // направление zoom
+    const delta =
+        e.deltaY > 0 ? -0.1 : 0.1;
+
+    // новый scale
+    const newScale = Math.max(
+        0.1,
+        Math.min(6, scale + delta)
+    );
+
+    // сохраняем точку под курсором
+    translateX =
+        mouseX - imageX * newScale;
+
+    translateY =
+        mouseY - imageY * newScale;
+
+    scale = newScale;
+
+    updateTransform();
+
+}, { passive: false });
+
+    function changeZoom(delta) {
+
+        // центр viewport
+        const centerX =
+            viewport.clientWidth / 2;
+
+        const centerY =
+            viewport.clientHeight / 2;
+
+        // координаты изображения в центре
+        const imageX =
+            (centerX - translateX) / scale;
+
+        const imageY =
+            (centerY - translateY) / scale;
+
+        // новый scale
+        const newScale = Math.max(
+            0.1,
+            Math.min(6, scale + delta)
+        );
+
+        // удерживаем центр
+        translateX =
+            centerX - imageX * newScale;
+
+        translateY =
+            centerY - imageY * newScale;
+
+        scale = newScale;
+
+        updateTransform();
+    }
+
+    const zoomVal = document.getElementById('zoomVal');
+    const miniMap = document.getElementById('miniMap');
+    const miniViewport = document.getElementById('miniViewport');
+    const miniMapImg = document.getElementById('miniMapImg');
+
+    let rafPending = false;
+
+// =========================
+// ZOOM TO DOT (при клике на строку)
+// =========================
+
+    function zoomToDot(dot, fromSearch) {
+        if (!mainImg.naturalWidth) return;
+
+        const dotX = parseFloat(dot.style.left) / 100;
+        const dotY = parseFloat(dot.style.top) / 100;
+
+        const imgNatX = dotX * mainImg.naturalWidth;
+        const imgNatY = dotY * mainImg.naturalHeight;
+
+        // Только центрируем точку — зум не меняем
+        const cx = viewport.clientWidth / 2;
+        const cy = viewport.clientHeight / 2;
+
+        const newTX = cx - imgNatX * scale;
+        const newTY = cy - imgNatY * scale;
+
+        imgWrapper.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+        translateX = newTX;
+        translateY = newTY;
+
+        updateTransform();
+
+        setTimeout(() => {
+            imgWrapper.style.transition = 'transform 0.05s linear';
+        }, 520);
+    }
+
+    function updateTransform() {
+
+        imgWrapper.style.transform =
+            `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+        zoomVal.innerText = Math.round(scale * 100) + '%';
+
+        if (!rafPending) {
+            rafPending = true;
+            requestAnimationFrame(() => {
+                updateMiniMap();
+                rafPending = false;
+            });
+        }
+    }
+
+    function fitToScreen() {
+
+        if (!mainImg.naturalWidth) return;
+
+        // На мобиле viewport может быть скрыт (display:none через data-tab)
+        // Используем offsetWidth/offsetHeight — они 0 если скрыто
+        const vw = viewport.clientWidth  || viewport.offsetWidth;
+        const vh = viewport.clientHeight || viewport.offsetHeight;
+
+        // Если viewport ещё не виден — отложим на следующий кадр
+        if (!vw || !vh) {
+            requestAnimationFrame(fitToScreen);
+            return;
+        }
+
+        const ratio = Math.min(
+            (vw - 20) / mainImg.naturalWidth,
+            (vh - 20) / mainImg.naturalHeight,
+            1.0
+        );
+
+        scale = ratio;
+
+        translateX =
+            (vw - mainImg.naturalWidth * scale) / 2;
+
+        translateY =
+            (vh - mainImg.naturalHeight * scale) / 2;
+
+        updateTransform();
+
+        updateMiniMap();
+    }
+
+// =========================
+// MINIMAP
+// =========================
+
+    function updateMiniMap() {
+
+        if (!mainImg.naturalWidth) return;
+        if (!miniMap || !miniViewport) return;
+
+        const miniWidth = miniMap.clientWidth;
+        const miniHeight = miniMap.clientHeight;
+
+        const imgWidth = mainImg.naturalWidth * scale;
+        const imgHeight = mainImg.naturalHeight * scale;
+
+        const viewW = (viewport.clientWidth / imgWidth) * miniWidth;
+        const viewH = (viewport.clientHeight / imgHeight) * miniHeight;
+        const viewX = (-translateX / imgWidth) * miniWidth;
+        const viewY = (-translateY / imgHeight) * miniHeight;
+
+        miniViewport.style.cssText = `width:${viewW}px; height:${viewH}px; left:${viewX}px; top:${viewY}px;`;
+    }
+
+
+    // =========================
+    // DOCS
+    // =========================
+
+    // DOCS: привязка к section.title из data.js
+    // Добавляй { section: 'Точное название раздела', file: 'manuals/file.pdf', label: 'Краткое название' }
+    const DOCS = [
+        // ── Accessory (Carrier) ──────────────────────────────────────
+        {
+            section: 'Accessory (Carrier)',
+            file:    'manuals/EX-KLE500CTF-99870-0342.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        // ── Accessory (Center Stand) ─────────────────────────────────
+        {
+            section: 'Accessory (Center Stand)',
+            file:    'manuals/EX-KLE500CTF-99870-0337.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        // ── Accessory (Engine Guard) ─────────────────────────────────
+        {
+            section: 'Accessory (Engine Guard)',
+            file:    'manuals/EX-KLE500CTF-99870-0333.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        // ── Accessory (Fog Lamp) ─────────────────────────────────────
+        {
+            section: 'Accessory (Fog Lamp)',
+            file:    'manuals/EX-KLE500CTF-99870-0334.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        // ── Accessory (Grip Heater) — два документа ──────────────────
+        {
+            section: 'Accessory (Grip Heater)',
+            file:    'manuals/EX-KLE500CTF-99870-0332.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        {
+            section: 'Accessory (Grip Heater)',
+            file:    'manuals/EX-KLE500CTF-99870-0396.pdf',
+            label:   'Operation Manual',
+            short:   'OPS',
+        },
+        // ── Accessory (Pannier Case) ─────────────────────────────────
+        {
+            section: 'Accessory (Pannier Case)',
+            file:    'manuals/EX-KLE500CTF-99870-0343.pdf',
+            label:   'Assembly Instructions (Bracket)',
+            short:   'BKT',
+        },
+        {
+            section: 'Accessory (Pannier Case)',
+            file:    'manuals/EX-KL650FNF-99870-0122-06.pdf',
+            label:   'Assembly Instructions (One Key System)',
+            short:   'KEY',
+        },
+        // ── Accessory (Radiator Screen) ──────────────────────────────
+        {
+            section: 'Accessory (Radiator Screen)',
+            file:    'manuals/EX-KLE500CTF-99870-0346.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        // ── Accessory (Seat) ─────────────────────────────────────────
+        {
+            section: 'Accessory (Seat)',
+            file:    'manuals/EX-KLE500CTF-99870-0340.pdf',
+            label:   'Assembly Instructions (Low Seat)',
+            short:   'LOW',
+        },
+        {
+            section: 'Accessory (Seat)',
+            file:    'manuals/EX-KLE500CTF-99870-0341.pdf',
+            label:   'Assembly Instructions (Pillion Seat)',
+            short:   'PIL',
+        },
+        // ── Accessory (Top Case) ─────────────────────────────────────
+        {
+            section: 'Accessory (Top Case)',
+            file:    'manuals/EX-KLE500CTF-99870-0391.pdf',
+            label:   'Assembly Instructions',
+            short:   'ASM',
+        },
+        {
+            section: 'Accessory (Top Case)',
+            file:    'manuals/EX-KLE500CTF-99870-0392.pdf',
+            label:   'Operation Manual',
+            short:   'OPS',
+        },
+        // ── Accessory (Electrical) — USB Socket ─────────────────────
+        {
+            section: 'Accessory (Electrical)',
+            file:    'manuals/EX-KLE500CTF-99870-0338.pdf',
+            label:   'Assembly Instructions (USB Socket)',
+            short:   'ASM',
+        },
+        {
+            section: 'Accessory (Electrical)',
+            file:    'manuals/EX-KLE500CTF-99870-0339.pdf',
+            label:   'Operation Manual (USB Socket)',
+            short:   'OPS',
+        },
+    ];
+
+    // Lookup: section → массив документов (поддерживает несколько PDF на раздел)
+    const docBySection = new Map();
+    DOCS.forEach(d => {
+        if (!docBySection.has(d.section)) docBySection.set(d.section, []);
+        docBySection.get(d.section).push(d);
+    });
+
+    // =========================
+    // MENU
+    // =========================
+
+    function renderMenu() {
+
+        const menuBox = document.getElementById('menu');
+        menuBox.innerHTML = '';
+
+        const preview     = document.getElementById('menuPreview');
+        const previewImg  = document.getElementById('menuPreviewImg');
+        const previewLbl  = document.getElementById('menuPreviewLabel');
+        let previewTimer;
+
+        function showPreview(section, menuItemEl) {
+            clearTimeout(previewTimer);
+
+            previewImg.src = `images/${section.img}`;
+            previewLbl.innerText = section.title;
+
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                // На мобиле — по центру экрана по вертикали
+                const previewH = 200;
+                const top = Math.max((window.innerHeight - previewH) / 2, 10);
+                preview.style.top = top + 'px';
+            } else {
+                // На десктопе — рядом с пунктом меню
+                const rect = menuItemEl.getBoundingClientRect();
+                const previewH = 180;
+                const maxTop = window.innerHeight - previewH - 10;
+                const top = Math.min(Math.max(rect.top, 10), maxTop);
+                preview.style.top = top + 'px';
+            }
+
+            preview.classList.add('visible');
+        }
+
+        function hidePreview() {
+            previewTimer = setTimeout(() => {
+                preview.classList.remove('visible');
+            }, 80);
+        }
+
+        // ⭐ FAVORITES BUTTON — pinned above the scrollable list
+        const favPinned = document.getElementById('favPinned');
+        favPinned.innerHTML = '';
+
+        const favItem = document.createElement('div');
+        favItem.className = 'fav-pinned-item';
+        favItem.innerHTML = `
+            <span class="fav-pinned-icon">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z"
+                          stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="fav-pinned-label">FAVORITES</span>
+            <span class="fav-pinned-pin">PIN</span>
+            <span class="fav-pinned-badge" id="favCountBadge">0</span>
+        `;
+
+        favItem.onclick = () => {
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.fav-pinned-item').forEach(m => m.classList.remove('active'));
+            favItem.classList.add('active');
+            showFavorites();
+            closeMobileSidebar();
+        };
+
+        favPinned.appendChild(favItem);
+
+        motorcycleData.sections.forEach((section, i) => {
+
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            const idx = String(i + 1).padStart(2, '0');
+            const docs = docBySection.get(section.title) || [];
+            const docBtnsHtml = docs.length ? `
+                <span class="menu-doc-btns">${docs.map(doc => `
+                    <a class="menu-doc-btn" href="${doc.file}" target="_blank" rel="noopener"
+                        title="${doc.label} (PDF)" onclick="event.stopPropagation()">
+                        <svg viewBox="0 0 12 14">
+                            <path d="M7 1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V5L7 1z"/>
+                            <polyline points="7,1 7,5 11,5"/>
+                        </svg>${doc.short || 'PDF'}</a>`).join('')}
+                </span>` : '';
+            div.innerHTML = `<span class="menu-idx">${idx}</span>${section.title}${docBtnsHtml}`;
+            div.dataset.title = section.title;
+
+            div.onmouseenter = () => showPreview(section, div);
+            div.onmouseleave = () => hidePreview();
+
+            // Аккордеон с превью схемы (только мобиле)
+            const accordion = document.createElement('div');
+            accordion.className = 'menu-accordion';
+            accordion.innerHTML = `
+                <div class="menu-accordion-inner">
+                    <img src="images/${section.img}" alt="${section.title}">
+                    <button class="menu-accordion-btn">Открыть раздел →</button>
+                </div>`;
+            accordion.querySelector('.menu-accordion-btn').onclick = (e) => {
+                e.stopPropagation();
+                closeAllAccordions();
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                document.querySelectorAll('.fav-pinned-item').forEach(m => m.classList.remove('active'));
+                div.classList.add('active');
+                selectSection(section);
+                switchMobileTab('schema');
+                closeMobileSidebar();
+            };
+
+            div.onclick = () => {
+                if (window.innerWidth <= 768) {
+                    const isOpen = accordion.classList.contains('open');
+                    closeAllAccordions();
+                    if (!isOpen) accordion.classList.add('open');
+                } else {
+                    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                    document.querySelectorAll('.fav-pinned-item').forEach(m => m.classList.remove('active'));
+                    div.classList.add('active');
+                    hidePreview();
+                    preview.classList.remove('visible');
+                    selectSection(section);
+                }
+            };
+
+            menuBox.appendChild(div);
+            menuBox.appendChild(accordion);
+        });
+
+        // Бейдж при старте
+        updateFavBadge();
+    }
+
+    // =========================
+    // SELECT SECTION
+    // =========================
+
+    function selectSection(section, onReady) {
+
+        // Сброс выбора
+        selectedRow = null;
+        selectedDots = [];
+
+        document.getElementById('placeholder').style.display = 'none';
+        const viewPane = document.getElementById('viewPane');
+        viewPane.style.display = 'flex';
+        viewPane.classList.remove('fav-mode');
+        if (window.innerWidth <= 768) {
+            document.getElementById('mobileTabBar').style.display = 'flex';
+            document.getElementById('main').classList.remove('no-tabbar');
+        }
+        document.getElementById('sectionTitle').innerText = section.title;
+        document.getElementById('topBarTitle').textContent = section.title;
+        document.getElementById('topBarBadge').textContent = 'EPC';
+
+        mainImg.src = `images/${section.img}`;
+        miniMapImg.src = `images/${section.img}`;
+
+        // onload может не сработать при file:// — добавляем onerror и fallback
+        const _imgCallback = () => {
+            fitToScreen();
+            updateMiniMap();
+            if (onReady) onReady();
+        };
+        mainImg.onload  = _imgCallback;
+        mainImg.onerror = _imgCallback;
+        // Fallback: если через 300ms onload не сработал — всё равно вызываем
+        setTimeout(() => {
+            if (onReady) onReady();
+            onReady = null; // не вызываем дважды
+        }, 300);
+
+        document.querySelectorAll('.part-dot')
+            .forEach(dot => dot.remove());
+
+        const body = document.getElementById('tableBody');
+        const fragment = document.createDocumentFragment();
+
+        body.innerHTML = '';
+
+        section.parts.forEach((part, partIndex) => {
+
+            const row = document.createElement('tr');
+            row.dataset.code = part.code;
+
+            row.innerHTML = `
+    <td style="text-align:center;">
+        <span
+            class="favorite-btn"
+            onclick="event.stopPropagation(); toggleFavorite('${part.code}', this.closest('tr'))"
+        >
+            ${isFavorite(part.code)
+                ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="currentColor"/></svg>`
+                : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>`
+            }
+        </span>
+    </td>
+
+    <td style="font-weight:600; color:var(--text)">
+        <span class="part-name-full">${part.desc}</span>
+        <span class="part-ref-sub">${part.ref || ''}</span>
+    </td>
+
+    <td class="col-ref" style="color:var(--green); font-weight:bold">
+        ${part.ref || ''}
+    </td>
+
+    <td>
+        <span
+            class="part-code"
+            onclick="copyPartNumber('${part.code}')"
+            title="Click to copy: ${part.code}"
+        >
+            ${part.code}
+        </span>
+    </td>
+
+    <td style="text-align:center; font-weight:bold">
+        ${part.qty}
+    </td>
+`;
+
+            const dots = [];
+
+            // =========================
+            // MULTI DOT SUPPORT
+            // =========================
+
+            if (part.pos) {
+
+                const positions =
+                    Array.isArray(part.pos[0])
+                        ? part.pos
+                        : [part.pos];
+
+                // Пропускаем заглушечные координаты [50, 50]
+                const realPositions = positions.filter(
+                    pos => !(pos[0] === 50 && pos[1] === 50)
+                );
+
+                realPositions.forEach((pos, dotIndex) => {
+
+                    const dot = document.createElement('div');
+
+                    dot.className = 'part-dot';
+                    dot.id = `dot-${partIndex}-${dotIndex}`;
+                    // Apply position and size (size in % of image, default 3×2.2)
+                    const _sz = part.size || [3.0, 2.2];
+                    dot.style.left   = pos[0] + '%';
+                    dot.style.top    = pos[1] + '%';
+                    dot.style.width  = _sz[0] + '%';
+                    dot.style.height = _sz[1] + '%';
+                    // centering handled by CSS transform: translate(-50%,-50%)
+
+                    // =========================
+                    // CLICK DOT
+                    // =========================
+
+                    dot.onclick = (e) => {
+
+                        e.stopPropagation();
+
+                        if (selectedRow) selectedRow.classList.remove('highlight');
+                        selectedDots.forEach(d => d.classList.remove('active'));
+
+                        selectedRow = row;
+                        selectedDots = dots;
+
+                        row.classList.add('highlight');
+                        flashRow(row);
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        dots.forEach(d => d.classList.add('active'));
+
+                        // На мобиле — переключаемся на вкладку деталей
+                        if (window.innerWidth <= 768) {
+                            switchMobileTab('parts');
+                        }
+                    };
+
+                    // =========================
+                    // HOVER DOT
+                    // =========================
+
+                    dot.onmouseenter = () => {
+                        row.classList.add('hovered');
+                        dots.forEach(d => d.classList.add('active'));
+                    };
+
+                    dot.onmouseleave = () => {
+                        row.classList.remove('hovered');
+                        dots.forEach(d => d.classList.remove('active'));
+                        selectedDots.forEach(d => d.classList.add('active'));
+                    };
+
+                    imgWrapper.appendChild(dot);
+                    dots.push(dot);
+                });
+            }
+
+            // =========================
+            // SAVE DOTS
+            // =========================
+
+            row._dots = dots;
+
+            // =========================
+            // HOVER ROW
+            // =========================
+
+            row.onmouseenter = () => {
+                row.classList.add('hovered');
+                selectedDots.forEach(d => d.classList.remove('active'));
+                dots.forEach(d => d.classList.add('active'));
+            };
+
+            row.onmouseleave = () => {
+                row.classList.remove('hovered');
+                dots.forEach(d => d.classList.remove('active'));
+                selectedDots.forEach(d => d.classList.add('active'));
+            };
+
+            // =========================
+            // CLICK ROW
+            // =========================
+
+            row.onclick = () => {
+
+                if (selectedRow) selectedRow.classList.remove('highlight');
+                selectedDots.forEach(d => d.classList.remove('active'));
+
+                selectedRow = row;
+                selectedDots = dots;
+
+                row.classList.add('highlight');
+                flashRow(row);
+                dots.forEach(d => d.classList.add('active'));
+
+                // Приближаем схему к первой точке детали
+                if (dots.length > 0) {
+                    zoomToDot(dots[0], false);
+                }
+            };
+
+            updateFavoriteUI(part.code, row);
+
+            fragment.appendChild(row);
+        });
+
+        body.appendChild(fragment);
+    }
+
+    // =========================
+    // GET COORDS
+    // =========================
+
+    viewport.addEventListener('click', e => {
+
+        if (!e.shiftKey) return;
+
+        const rect = mainImg.getBoundingClientRect();
+
+        const x =
+            ((e.clientX - rect.left) / rect.width) * 100;
+
+        const y =
+            ((e.clientY - rect.top) / rect.height) * 100;
+
+        prompt(
+            "Координаты:",
+            `pos: [${x.toFixed(1)}, ${y.toFixed(1)}]`
+        );
+    });
+    // =========================
+    // HOME
+    // =========================
+
+    function goHome() {
+
+        // скрываем каталог
+        const viewPane = document.getElementById('viewPane');
+        viewPane.style.display = 'none';
+        viewPane.classList.remove('fav-mode');
+
+        // показываем главную
+        document.getElementById('placeholder').style.display = 'flex';
+        document.getElementById('mobileTabBar').style.display = 'none';
+        document.getElementById('main').classList.remove('no-tabbar');
+
+        // сбрасываем topBar
+        document.getElementById('topBarTitle').textContent = 'EPC';
+        document.getElementById('topBarBadge').textContent = 'EPC';
+
+        // убираем active меню
+        document.querySelectorAll('.menu-item')
+            .forEach(item => item.classList.remove('active'));
+
+        // сбрасываем выбранную строку
+        if (selectedRow) {
+            selectedRow.classList.remove('highlight');
+        }
+
+        // убираем активные точки
+        selectedDots.forEach(dot =>
+            dot.classList.remove('active')
+        );
+
+        selectedRow = null;
+        selectedDots = [];
+
+        // очищаем поиск
+        searchInput.value = '';
+        searchResults.style.display = 'none';
+    }
+    // =========================
+// EXPORT FAVORITES
+// =========================
+
+    function exportFavorites() {
+
+        const addedCodes = new Set();
+        const items = [];
+
+        favorites.forEach(fav => {
+            if (addedCodes.has(fav.code)) return;
+            const found = partByCode.get(fav.code);
+            if (!found) return;
+            addedCodes.add(fav.code);
+            items.push({
+                section: found.sectionTitle,
+                code: found.part.code,
+                desc: found.part.desc,
+                qty: fav.customQty ?? found.part.qty
+            });
+        });
+
+        if (items.length === 0) {
+            showToast(_t.favEmpty || 'FAVORITES EMPTY');
+            return;
+        }
+
+        // CSV with BOM for correct Excel/Sheets encoding
+        const bom = '\uFEFF';
+        const header = 'Part Number,Description,Qty,Section\r\n';
+        const rows = items.map(i => {
+            const esc = v => `"${String(v).replace(/"/g, '""')}"`; 
+            return [esc(i.code), esc(i.desc), i.qty, esc(i.section)].join(',');
+        }).join('\r\n');
+
+        const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `KLE500SE_favorites_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+
+        showToast((_t.exported||'EXPORTED') + ' ' + items.length + ' ' + (_t.parts||'PARTS'));
+    }
+
+// =========================
+// PRINT SHOPPING LIST
+// =========================
+
+    function printPartsList() {
+
+        const addedCodes = new Set();
+        const items = [];
+
+        favorites.forEach(fav => {
+            if (addedCodes.has(fav.code)) return;
+            const found = partByCode.get(fav.code);
+            if (!found) return;
+            addedCodes.add(fav.code);
+            items.push({
+                ...found.part,
+                qty: fav.customQty ?? found.part.qty
+            });
+        });
+
+        if (items.length === 0) {
+            showToast(_t.favEmpty || 'FAVORITES EMPTY');
+            return;
+        }
+
+        const html = `
+
+        <html>
+
+        <head>
+
+            <title>Parts List</title>
+
+            <style>
+
+                body{
+                    font-family:Arial;
+                    padding:40px;
+                }
+
+                h1{
+                    margin-bottom:20px;
+                }
+
+                table{
+                    width:100%;
+                    border-collapse:collapse;
+                }
+
+                td,th{
+                    border:1px solid #000;
+                    padding:8px;
+                    text-align:left;
+                }
+
+            </style>
+
+    <!-- PART PREVIEW POPUP -->
+    <div id="partPopup" role="dialog" aria-modal="true">
+        <button class="pp-close" onclick="closePartPopup()" title="Close">✕</button>
+        <div class="pp-header">
+            <span class="pp-code" id="ppCode" onclick="copyPartNumber(document.getElementById('ppCode').textContent)" title="Click to copy"></span>
+            <span class="pp-section" id="ppSection"></span>
+        </div>
+        <div class="pp-desc" id="ppDesc"></div>
+        <div class="pp-meta">
+            <div class="pp-meta-item">
+                <span class="pp-meta-label">QTY</span>
+                <span class="pp-meta-value" id="ppQty">—</span>
+            </div>
+            <div class="pp-meta-item" id="ppRemarkWrap" style="display:none">
+                <span class="pp-meta-label">NOTE</span>
+                <span class="pp-meta-value" id="ppRemark" style="font-size:10px;color:var(--text-dim)"></span>
+            </div>
+        </div>
+        <div class="pp-actions">
+            <button class="pp-btn" id="ppFavBtn" onclick="toggleFavFromPopup()">⭐ ADD</button>
+            <button class="pp-btn pp-btn-goto" onclick="gotoFromPopup()">→ GO TO</button>
+        </div>
+    </div>
+
+
+        </head>
+
+        <body>
+
+            <h1>Kawasaki KLE500SE Parts List</h1>
+
+            <table>
+
+                <tr>
+                    <th>Part Number</th>
+                    <th>Description</th>
+                    <th>Qty</th>
+                </tr>
+
+                ${items.map(i => `
+                    <tr>
+                        <td>${i.code}</td>
+                        <td>${i.desc}</td>
+                        <td>${i.qty}</td>
+                    </tr>
+                `).join('')}
+
+            </table>
+
+        
+    </body>
+
+        </html>
+        `;
+
+        const w = window.open('');
+
+        w.document.write(html);
+
+        w.document.close();
+
+        w.print();
+    }
+
+    // =========================
+    // TOAST
+    // =========================
+
+    function showToast(msg, duration) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), duration || 1400);
+}
+
+// =========================
+// COPY PART NUMBER
+// =========================
+
+    function copyPartNumber(code) {
+        navigator.clipboard.writeText(code);
+        showToast(_t.copied || 'COPIED');
+    }
+
+    function showFavorites() {
+
+    document.getElementById('placeholder').style.display = 'none';
+    const viewPane = document.getElementById('viewPane');
+    viewPane.style.display = 'flex';
+    viewPane.classList.add('fav-mode');
+    if (window.innerWidth <= 768) {
+        document.getElementById('mobileTabBar').style.display = 'none';
+        document.getElementById('main').classList.add('no-tabbar');
+        // Всегда показываем таблицу — схемы в Favorites нет
+        document.getElementById('viewPane').setAttribute('data-tab', 'parts');
+    }
+    document.getElementById('sectionTitle').innerText = 'FAVORITES';
+    document.getElementById('topBarTitle').textContent = 'Favorites';
+    document.getElementById('topBarBadge').textContent = 'EPC';
+
+    const body = document.getElementById('tableBody');
+    body.innerHTML = '';
+
+    if (favorites.length === 0) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="5" style="padding: 0;">
+                    <div style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 48px 24px;
+                        gap: 14px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            width: 56px; height: 56px;
+                            border: 1px solid var(--sidebar-border);
+                            border-radius: 12px;
+                            display: flex; align-items: center; justify-content: center;
+                            background: var(--menu-hover-bg);
+                            opacity: 0.5;
+                            color: var(--green);
+                        "><svg width="24" height="24" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg></div>
+                        <div style="
+                            font-family: 'Barlow Condensed', sans-serif;
+                            font-size: 16px;
+                            font-weight: 700;
+                            letter-spacing: 1.5px;
+                            text-transform: uppercase;
+                            color: var(--text);
+                            opacity: 0.5;
+                        ">СПИСОК ПУСТ</div>
+                        <div style="font-size: 12px; color: var(--text-dim); max-width: 240px; line-height: 1.6;">Откройте любой раздел, найдите нужную деталь и нажмите <svg style="display:inline;vertical-align:middle;" width="11" height="11" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1l1.5 4h4l-3.3 2.4 1.3 4L7 9 3.5 11.4l1.3-4L1.5 5h4L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg> рядом с ней — она появится здесь</div>
+                        <button onclick="document.getElementById('searchInput').focus(); closeMobileSidebar();" style="
+                            margin-top: 6px;
+                            padding: 9px 18px;
+                            background: transparent;
+                            border: 1px solid var(--sidebar-border);
+                            border-radius: 5px;
+                            color: var(--green);
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 10px;
+                            font-weight: 600;
+                            letter-spacing: 1.5px;
+                            text-transform: uppercase;
+                            cursor: pointer;
+                            transition: background 0.15s, border-color 0.15s;
+                        " onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'"
+                           onmouseout="this.style.background='transparent';this.style.borderColor='var(--sidebar-border)'">
+                            Найти деталь →
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        // reset stats
+        document.getElementById('statParts').textContent = '0';
+        document.getElementById('statQty').textContent = '0';
+        document.getElementById('statSections').textContent = '0';
+        // hide column headers when list is empty
+        document.querySelector('.fav-thead').style.display = 'none';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    let totalQty = 0;
+    const sections = new Set();
+
+    favorites.forEach(fav => {
+
+        const found = partByCode.get(fav.code);
+        if (!found) return;
+
+        const { part: partData, sectionTitle } = found;
+        const qty = fav.customQty ?? partData.qty;
+        totalQty += (parseInt(qty) || 0);
+        sections.add(sectionTitle);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+    <td style="text-align:center; cursor:pointer; color:#ff4d4d; font-size:13px;"
+        onclick="removeFavorite('${fav.code}')">✖</td>
+    <td style="font-weight:600; color:var(--text)">
+        <span class="part-name-full">${partData.desc}</span>
+        <span class="part-ref-sub fav-section-sub" onclick="goToSection('${sectionTitle}')">${sectionTitle} ↗</span>
+    </td>
+    <td class="col-fav-section"><span class="fav-section-badge" onclick="goToSection('${sectionTitle}')" title="Open section">${sectionTitle} ↗</span></td>
+    <td><span class="part-code" onclick="copyPartNumber('${partData.code}')">${partData.code}</span></td>
+    <td class="fav-qty-cell" style="text-align:center;"></td>
+`;
+        const qtyCell = row.querySelector('.fav-qty-cell');
+        renderQtyCounter(qtyCell, fav.code, fav.customQty ?? partData.qty);
+        fragment.appendChild(row);
+    });
+
+    body.appendChild(fragment);
+
+    // show column headers when items exist
+    document.querySelector('.fav-thead').style.display = '';
+
+    // Update stats
+    document.getElementById('statParts').textContent = favorites.length;
+    document.getElementById('statQty').textContent = totalQty;
+    document.getElementById('statSections').textContent = sections.size;
+}
+
+    function removeFavorite(code) {
+        const idx = favorites.findIndex(f => f.code === code);
+        if (idx !== -1) favorites.splice(idx, 1);
+        saveFavorites();
+        showFavorites();
+        document.querySelectorAll(`#tableBody tr[data-code="${code}"]`).forEach(row => {
+            updateFavoriteUI(code, row);
+        });
+    }
+    // =========================
+    // THEMES
+    // =========================
+
+    function setTheme(theme, btn) {
+        document.documentElement.setAttribute('data-theme', theme === 'dark' ? '' : theme);
+        localStorage.setItem('kleTheme', theme);
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    // Restore saved theme on load
+    (function() {
+        const saved = localStorage.getItem('kleTheme') || 'dark';
+        const btn = document.querySelector(`.theme-btn[data-theme="${saved}"]`);
+        setTheme(saved, btn);
+    })();
+
+    renderMenu();
+
+    // =========================
+    // I18N
+    // =========================
+
+    const i18n = {
+        ru: {
+            theme:       'Тема',
+            module:      'Модуль',
+            hub:         'Hub',
+            center:      'Центр',
+            searchPh:    'Поиск по каталогу...',
+            exportBtn:   'ЭКСПОРТ',
+            docsLabel:   'Документация',
+            favEmpty:    'НЕТ ИЗБРАННЫХ',
+            exported:    'ЭКСПОРТИРОВАНО',
+            parts:       'ДЕТ.',
+            copied:      'СКОПИРОВАНО',
+            searchParts: 'Поиск деталей',
+        },
+        en: {
+            theme:       'Theme',
+            module:      'Module',
+            hub:         'Hub',
+            center:      'Fit',
+            searchPh:    'Search catalog...',
+            exportBtn:   'EXPORT',
+            docsLabel:   'Documentation',
+            favEmpty:    'FAVORITES EMPTY',
+            exported:    'EXPORTED',
+            parts:       'PARTS',
+            copied:      'COPIED',
+            searchParts: 'Search parts',
+        },
+        es: {
+            theme:       'Tema',
+            module:      'Módulo',
+            hub:         'Hub',
+            center:      'Centrar',
+            searchPh:    'Buscar en catálogo...',
+            exportBtn:   'EXPORTAR',
+            docsLabel:   'Documentación',
+            favEmpty:    'SIN FAVORITOS',
+            exported:    'EXPORTADO',
+            parts:       'PIEZAS',
+            copied:      'COPIADO',
+            searchParts: 'Buscar piezas',
+        },
+    };
+
+    // Keep current translations accessible globally
+    let _t = i18n.ru;
+
+    function setLang(lang, btn) {
+        _t = i18n[lang] || i18n.en;
+        // Static data-i18n elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (_t[key] !== undefined) el.textContent = _t[key];
+        });
+        // Search placeholder
+        const si = document.getElementById('searchInput');
+        if (si) si.placeholder = _t.searchPh;
+        // Docs header label
+        const dhl = document.querySelector('.docs-header-label');
+        if (dhl) dhl.textContent = _t.docsLabel;
+        // Persist
+        document.documentElement.lang = lang;
+        localStorage.setItem('kleLang', lang);
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    (function initLang() {
+        const saved = localStorage.getItem('kleLang') || 'ru';
+        const btn = document.querySelector(`.lang-btn[data-lang="${saved}"]`);
+        setLang(saved, btn);
+    })();
+
+
+    // =========================
+    // PART PREVIEW POPUP
+    // =========================
+
+    let _ppCode = null;   // текущий код детали в попапе
+    let _ppSection = null; // текущий раздел
+
+    function showPartPopup(code, sectionTitle, anchorEl) {
+        const found = partByCode.get(code);
+        if (!found) return;
+        const part = found.part;
+
+        _ppCode    = code;
+        _ppSection = sectionTitle;
+
+        document.getElementById('ppCode').textContent    = part.code;
+        document.getElementById('ppSection').textContent = sectionTitle;
+        document.getElementById('ppDesc').textContent    = part.desc;
+        document.getElementById('ppQty').textContent     = part.qty ?? '—';
+
+        const remarkWrap = document.getElementById('ppRemarkWrap');
+        const remarkEl   = document.getElementById('ppRemark');
+        if (part.remark) {
+            remarkEl.textContent = part.remark;
+            remarkWrap.style.display = '';
+        } else {
+            remarkWrap.style.display = 'none';
+        }
+
+        updatePopupFavBtn();
+
+        // Позиционирование — справа от searchInput (стабильный anchor)
+        const popup  = document.getElementById('partPopup');
+        popup.classList.add('visible');
+
+        // Используем searchInput как anchor — он всегда в DOM
+        const anchor = document.getElementById('searchInput');
+        const rect   = anchor ? anchor.getBoundingClientRect() : { left: 100, right: 400, top: 60, bottom: 90 };
+        const pw     = 280;
+        const ph     = popup.offsetHeight || 220;
+        const margin = 8;
+
+        // Показываем справа от searchInput или под ним
+        let left = rect.right + margin;
+        let top  = rect.top;
+
+        if (left + pw > window.innerWidth - margin) {
+            left = rect.left - pw - margin;
+        }
+        if (left < margin) {
+            left = margin;
+            top  = rect.bottom + margin;
+        }
+        if (top + ph > window.innerHeight - margin) {
+            top = window.innerHeight - ph - margin;
+        }
+        top = Math.max(margin, top);
+
+        popup.style.left = left + 'px';
+        popup.style.top  = top  + 'px';
+    }
+
+    function closePartPopup() {
+        const popup = document.getElementById('partPopup');
+        popup.classList.remove('visible');
+        _ppCode = null;
+        _ppSection = null;
+    }
+
+    function updatePopupFavBtn() {
+        const btn = document.getElementById('ppFavBtn');
+        if (!btn || !_ppCode) return;
+        const inFav = isFavorite(_ppCode);
+        btn.textContent = inFav ? '⭐ REMOVE' : '⭐ ADD';
+        btn.classList.toggle('fav-active', inFav);
+    }
+
+    function toggleFavFromPopup() {
+        if (!_ppCode) return;
+        const fakeRow = { querySelector: () => null };
+        toggleFavorite(_ppCode, fakeRow);
+        updatePopupFavBtn();
+    }
+
+    function gotoFromPopup() {
+        if (!_ppCode || !_ppSection) return;
+        closePartPopup();
+        goToPart(_ppSection, _ppCode);
+    }
+
+    // Закрытие по Escape и клику вне попапа
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closePartPopup();
+    });
+    document.addEventListener('click', e => {
+        const popup = document.getElementById('partPopup');
+        if (!popup) return;
+        if (!popup.classList.contains('visible')) return;
+        // Не закрывать если клик внутри попапа или внутри searchResults
+        const sr = document.getElementById('searchResults');
+        if (popup.contains(e.target)) return;
+        if (sr && sr.contains(e.target)) return;
+        closePartPopup();
+    });
+
+
+    // =========================
+    // MOBILE SIDEBAR
+    // =========================
+    function toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn = document.getElementById('menuToggle');
+        const tabMenu = document.getElementById('tabMenu');
+        const isOpen = sidebar.classList.contains('open');
+        if (isOpen) {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+            btn.classList.remove('open');
+            if (tabMenu) tabMenu.classList.remove('active');
+        } else {
+            sidebar.classList.add('open');
+            overlay.classList.add('visible');
+            btn.classList.add('open');
+            if (tabMenu) tabMenu.classList.add('active');
+        }
+    }
+
+    function closeMobileSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('visible');
+        document.getElementById('menuToggle').classList.remove('open');
+        const tabMenu = document.getElementById('tabMenu');
+        if (tabMenu) tabMenu.classList.remove('active');
+    }
+
+    // =========================
+    // MOBILE TAB SWITCHING
+    // =========================
+    function switchMobileTab(tab) {
+        const workspace = document.getElementById('viewPane');
+        workspace.setAttribute('data-tab', tab);
+        document.getElementById('tabSchema').classList.toggle('active', tab === 'schema');
+        document.getElementById('tabParts').classList.toggle('active', tab === 'parts');
+        closeMobileSidebar();
+
+        if (tab === 'schema') {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { fitToScreen(); });
+            });
+        }
+    }
+
+    // Default workspace tab
+    document.getElementById('viewPane').setAttribute('data-tab', 'schema');
+
+    // =========================
+    // MOBILE ACCORDION HELPER
+    // =========================
+    function closeAllAccordions() {
+        document.querySelectorAll('.menu-accordion.open')
+            .forEach(a => a.classList.remove('open'));
+    }
+
+</script>
+</body>
+</html>
