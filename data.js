@@ -188,14 +188,14 @@ const motorcycleData = {
 { ref: "11057A", code: "BRACKET", desc: "BRACKET", qty: 1, pos: [65.3, 89.63], size: [5.5, 1.2] },
 { ref: "13272", code: "13272-3743", desc: "PLATE,TOPCASE BASE", qty: 1, pos: [70.96, 58.05], size: [5.5, 1.2] },
 { ref: "14093", code: "COVER,TOPCASE,B.B.SILVER", desc: "COVER,TOPCASE,B.B.SILVER", qty: 1, pos: [33.18, 18.34], size: [5.5, 1.2] },
-{ ref: "56071", code: "LABEL-WARNING,PICTOGRAM", desc: "LABEL-WARNING,PICTOGRAM", qty: 1, pos: [50, 50] },
-{ ref: "56071A", code: "LABEL-WARNING,MAX LOAD", desc: "LABEL-WARNING,MAX LOAD", qty: 1, pos: [50, 50] },
-{ ref: "92005", code: "92005-1428", desc: "FITTING", qty: 1, pos: [50, 50] },
-{ ref: "92172", code: "92172-0823", desc: "SCREW,SOCKET,5X14", qty: 1, pos: [50, 50] },
-{ ref: "99994", code: "99994-1494-63E", desc: "PANEL-TOPCASE,B.B.SILVER", qty: 1, pos: [50, 50] },
-{ ref: "99994A", code: "99994-1495", desc: "CARRIER PLATE TOPCASE KL", qty: 1, pos: [50, 50] },
-{ ref: "99994B", code: "99994-1496", desc: "ROTOR(INNER GROOVE)", qty: 1, pos: [50, 50] },
-{ ref: "99994C", code: "99994-2546", desc: "TOPCASE 42L (120) (KLE)", qty: 1, pos: [50, 50] }
+{ ref: "56071", code: "LABEL-WARNING,PICTOGRAM", desc: "LABEL-WARNING,PICTOGRAM", qty: 1, pos: [70.66, 32.71], size: [5.5, 1.2] },
+{ ref: "56071A", code: "LABEL-WARNING,MAX LOAD", desc: "LABEL-WARNING,MAX LOAD", qty: 1, pos: [71.07, 26.66], size: [5.5, 1.2] },
+{ ref: "92005", code: "92005-1428", desc: "FITTING", qty: 1, pos: [43.83, 58.22], size: [5.5, 1.2] },
+{ ref: "92172", code: "92172-0823", desc: "SCREW,SOCKET,5X14", qty: 1, pos: [25.61, 23.94], size: [5.5, 1.2] },
+{ ref: "99994", code: "99994-1494-63E", desc: "PANEL-TOPCASE,B.B.SILVER", qty: 1, pos: [48.67, 21.11], size: [5.5, 1.2] },
+{ ref: "99994A", code: "99994-1495", desc: "CARRIER PLATE TOPCASE KL", qty: 1, pos: [75.79, 82.55], size: [5.5, 1.2] },
+{ ref: "99994B", code: "99994-1496", desc: "ROTOR(INNER GROOVE)", qty: 1, pos: [84.08, 44.69], size: [5.5, 1.2] },
+{ ref: "99994C", code: "99994-2546", desc: "TOPCASE 42L (120) (KLE)", qty: 1, pos: [23.54, 51.75], size: [5.5, 1.2] }
     ]
 },
 {
